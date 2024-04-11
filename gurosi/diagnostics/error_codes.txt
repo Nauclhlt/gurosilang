@@ -1,0 +1,9 @@
+[E000] Unexpected token.
+[E001] Invalid type.
+[E002] Invalid expression.
+[E003] Duplicated run block.
+[E004] Duplicated module declaration.
+[E005] Invalid continue or break.
+[E006] Invalid scopebreak.
+
+[C001] Invalid type.

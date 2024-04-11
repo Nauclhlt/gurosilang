@@ -1,0 +1,26 @@
+<symbolName> ::= Identifier
+<literal> ::= IntLiteral | FloatLiteral | StringLiteral | BooleanLiteral | DoubleLiteral
+<type> ::= "string" | "int" | "float" | "double" | "boolean" | <symbolExpr>;
+
+<statement> ::= <letStatement>
+<letStatement> ::= "let" <symbolName> ":" <type> "=" <expression> ";"
+<statementBlock> ::= "{" <statement> + "}" | <statement>
+<ifStatement> ::= "if" <expression> <statementBlock> | "if" <expression> <statementBlock> "else" <statementBlock>
+<whileStatement> ::= "while" <expression> <statementBlock>
+<forStatement> ::= "for" <symbolName> "," <expression> "to" <expression> <statementBlock>
+<continueStatement> ::= "continue"
+<breakStatement> ::= "break"
+<scopebreakStatement> ::= "scopebreak"
+<assignStatement> ::= <expression> "=" <expression>
+<glblfunctionDefinition> ::= "how" <type> <symbolName> "(" ... ")" <statementBlock>
+<accessIdentifiers>
+<structureDefinition> ::= "structure" <symbolName> ":" <accessIdentifiers> "{" ...  "}"
+<functionArgBody> ::= "(" <expression>, ... , <expression> ")"
+
+
+<expression> ::= <termF> | <termF> (">" | "<" | "<=" | ">=" | "==" | "!=" | "||", | "&&") <expression>
+<termF> ::= <term0> | <term0> ("+" | "-") <term0>
+<term0> ::= <term1> | <term1> ("*" | "**" | "/" | "%") <term1>
+<term1> ::= <term2> | <term2> ("++" | "--")
+<term2> ::= <term3> | <term3> "." <symbolName> | <term3> "." <symbolName> <functionArgBody> # implement
+<term3> ::= <symbolName> | <literal> | "(" <expression> ")"

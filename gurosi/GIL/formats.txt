@@ -1,0 +1,54 @@
+--- Header Codes ---
+0: Nothing, Missing
+
+(Types)
+MemAddr: integer 32bit
+RegAddr: integer 32bit
+RunAddr: integer 32bit
+String: { length: integer 32bit  body: UTF8 }
+Type: integer 32bit
+
+(Control Instructions)
+1001: Module Name
+1002: Subroutine Map
+1003: Run Block Begin
+1004: Type Map
+1005: Named Label
+
+(Run Instructions)
+1: add  // calc instructions calculates and pushes the result (calc_push)
+2: sub
+3: mul
+4: div
+5: mod
+6: calc_push [value: RegAddr]
+7: calc_pop [target: RegAddr]
+8: move [from: MemAddr, to: RegAddr]
+9: movem [from: RegAddr, to: MemAddr]
+10: jump [offset: integer32]
+11: cjump [condition: RegAddr, offset: integer32]
+12: alloc [loc: MemAddr, type: Type]
+13: call                            // Calls the function selected by sym_move.
+14: litmvf [from: float, to: RegAddr]
+15: litmvd [from: double, to RegAddr]
+16: litmvs [from: String, to RegAddr]
+17: litmvi [from: integer32, to RegAddr]
+18: litmvb [from: boolean, to RegAddr]
+19: movnul [to RegAddr]
+20: lt
+21: gt
+22: lte
+23: gte
+24: eq
+25: neq
+26: and
+27: or
+28: arg_push [value: RegAddr]
+29: arg_pop [target: RegAddr]
+30: call_push [value: RegAddr]
+31: call_pop [target: RegAddr]
+32: sym_move [from: RegAddr]
+33: sym_mover [to RegAddr]
+33: select [name: String]
+
+-- File Format --
