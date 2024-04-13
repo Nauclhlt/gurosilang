@@ -134,6 +134,11 @@ public sealed class TypePath {
             return TypePath.UNKNOWN;
     }
 
+    public TypePath WithoutGenerics()
+    {
+        return new TypePath(_route, _name);
+    }
+
     public bool NotNull()
     {
         return !CompareEquality(UNKNOWN);

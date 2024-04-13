@@ -27,4 +27,14 @@ public sealed class RefValueObject : IValueObject
     {
         return new RefValueObject(_type, _pointer);
     }
+
+    public IValueObject Refer(RuntimeHeap heap)
+    {
+        return heap.Read(_pointer);
+    }
+
+    public T Refer<T>(RuntimeHeap heap) where T : IValueObject
+    {
+        return (T)Refer(heap);
+    }
 }

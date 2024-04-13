@@ -11,7 +11,11 @@ public sealed class Function {
     private Token _token;
 
     public string Module => _module;
-    public string Name => _name;
+    public string Name
+    {
+        get => _name;
+        set => _name = value;
+    }
     public TypeData ReturnType => _returnType;
     public List<DefArgument> Parameters => _parameters;
     public TypeData ExtendType => _extendType;

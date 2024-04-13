@@ -124,6 +124,28 @@ public sealed partial class ClassBinary : IBinary
         return null;
     }
 
+    public FunctionBinary GetFunctionByFixedName(string name)
+    {
+        for (int i = 0; i < _functions.Count; i++)
+        {
+            if (_functions[i].Name == name)
+                return _functions[i];
+        }
+
+        return null;
+    }
+
+    public FunctionBinary GetStcFunctionByFixedName(string name)
+    {
+        for (int i = 0; i < _stcFunctions.Count; i++)
+        {
+            if (_stcFunctions[i].Name == name)
+                return _stcFunctions[i];
+        }
+
+        return null;
+    }
+
     public FunctionBinary MatchFunction(string name, FuncExpression calling, CompileContext c)
     {
         for (int i = 0; i < _functions.Count; i++)

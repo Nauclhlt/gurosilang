@@ -16,7 +16,12 @@ public sealed class CompiledCode : IDisposable
         _body.Seek(position, SeekOrigin.Begin);
     }
 
-    public bool EndOfCode => _reader.PeekChar() >= 0;
+    public bool EndOfCode => _body.Position >= _body.Length;
+
+    public void Retr(int offset)
+    {
+        _reader.BaseStream.Seek(-offset, SeekOrigin.Current);
+    }
 
     public byte ReadOpCode()
     {
@@ -32,7 +37,9 @@ public sealed class CompiledCode : IDisposable
     {
         Span<byte> lengthBuffer = stackalloc byte[4];
         _reader.Read(lengthBuffer);
+
         int length = BitConverter.ToInt32(lengthBuffer);
+        
         Span<byte> strBuffer = stackalloc byte[length];
         _reader.Read(strBuffer);
 
@@ -46,6 +53,13 @@ public sealed class CompiledCode : IDisposable
         _reader.Read(buffer4);
 
         return BitConverter.ToInt32(buffer4);
+    }
+
+    public int ReadInstLen()
+    {
+        if (EndOfCode)
+            return 0;
+        return _reader.ReadInt32();
     }
 
     public int ReadAddress()
@@ -73,7 +87,7 @@ public sealed class CompiledCode : IDisposable
 
     public bool ReadBoolean()
     {
-        _reader.ReadByte();
+        _reader.ReadBytes(4);
         return _reader.ReadByte() == (byte)1;
     }
 
@@ -121,6 +135,8 @@ public sealed class CompiledCode : IDisposable
             }
         }
 
-        return new CompiledCode() { _body = mem };
+        mem.Seek(0, SeekOrigin.Begin);
+
+        return new CompiledCode() { _body = mem, _reader = new BinaryReader(mem, Encoding.Unicode, true) };
     }
 }

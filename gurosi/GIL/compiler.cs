@@ -1180,7 +1180,11 @@ public sealed class Compiler
             
 
             if (!function.IsExtendR)
+            {
                 CompileFuncSymbol(env, c, func.Function, func);
+                // FIXME: 
+                env.Code[^1] += function.Name.Replace(env.Code[^1], string.Empty);
+            }
             else
             {
                 env.Code.Add("mov");
@@ -1281,7 +1285,8 @@ public sealed class Compiler
             {
                 env.Errors.Add(new Error(ErrorProvider.IndexTargetNotArray(), idx.Target.Token.Point));
             }
-            
+
+            CompileExpression(env, c, idx.Target);
             CompileExpression(env, c, idx.Index);
             env.Code.Add("idx");
         }

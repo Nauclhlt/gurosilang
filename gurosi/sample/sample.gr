@@ -1,7 +1,5 @@
 mine "C:/workspace/CSharp/GitProjects/gr/core.grsl";
 
-macro printf(value) std.Log.println(value);
-
 module Hangman;
 shorten Hangman;
 shorten std;
@@ -9,74 +7,39 @@ shorten collections;
 
 run
 {
-    let cnv: Converter = new Converter(&(string)strToInt);
-    let value: int = cnv.convert("100") as int;
-}
+    let msg: string = "Hello world!";
+    let test: array<string> = alloc string[msg.len()];
 
-how int strToInt(source: string)
-{
-    return Conv.parseInt(source);
-}
-
-# FIXME: Extended classes have the base class's constructor
-class Converter: public
-{
-    field private _conv: funcptr;
-
-    init (): private
+    for i, 1 to msg.len() + 1
     {
+        test[i - 1] = msg.substring(0, i);
     }
 
-    init (conv: funcptr): public
+    for i, 0 to msg.len()
     {
-        _conv = conv;
-    }
-
-    how any convert(source: any): public
-    {
-        let args: array<any> = alloc any[1];
-        args[0] = source;
-        return _conv.call_ret(args);
+        Log.println(test[i]);
     }
 }
 
-class Vector2d: public
+how void fizzbuzz(end: int)
 {
-    field public X: float;
-    field public Y: float;
-
-    init (x: float, y: float): public
+    for i, 1 to end + 1
     {
-        self.X = x;
-        self.Y = y;
-    }
-
-    init (r: float, angle: float): public
-    {
-        X = r * std.Math.cos(Math.radians(angle));
-        Y = r * std.Math.sin(Math.radians(angle));
-    }
-
-    init (source: Vector2d): public
-    {
-        self.X = source.X;
-        self.Y = source.Y;
-    }
-
-    how float length(): public
-    {
-        return Math.sqrt(X * X + Y * Y);
-    }
-
-    how Vector2d normalize(): public
-    {
-        let length: float = self.length();
-        return new Vector2d(X / length, Y / length);
-    }
-
-    how Vector2d rotate(deg: float): public
-    {
-        let rad: float = Math.radians(deg);
-        return new Vector2d(X * Math.cos(rad) - Y * Math.sin(rad), X * Math.sin(rad) + Y * Math.cos(rad));
+        if i % 3 == 0 && i % 5 == 0
+        {
+            Log.println("FizzBuzz");
+        }
+        else if i % 3 == 0
+        {
+            Log.println("Fizz");
+        }
+        else if i % 5 == 0
+        {
+            Log.println("Buzz");
+        }
+        else
+        {
+            Log.println("____");
+        }
     }
 }

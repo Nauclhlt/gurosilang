@@ -14,6 +14,11 @@ public sealed class Error
         internal set => _filename = value;
     }
 
+    public string GetFormatted()
+    {
+        return $"({_point.Line}, {_point.Column}) {_message}  ({_filename})";
+    }
+
     public static void AttachFileName(string filename, IEnumerable<Error> errors)
     {
         foreach (Error item in errors)

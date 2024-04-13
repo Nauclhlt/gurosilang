@@ -19,16 +19,16 @@ public sealed class SlicedMemory
     public void Alloc(int address)
     {
         _length = int.Max(_length, address - _start + 1);
-        _rtMemory.Alloc(address - _start);
+        _rtMemory.Alloc(address + _start);
     }
 
     public void Write(int address, IValueObject value)
     {
-        _rtMemory.Write(address - _start, value);
+        _rtMemory.Write(address + _start, value);
     }
 
     public IValueObject Read(int address)
     {
-        return _rtMemory.Read(address);
+        return _rtMemory.Read(address + _start);
     }
 }

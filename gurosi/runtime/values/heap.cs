@@ -5,7 +5,7 @@ namespace Gurosi;
 // ヒープ上のValue.
 public class HeapValueObject : IValueObject
 {
-    private TypePath _type;
+    protected TypePath _type;
 
     public TypePath Type => _type;
     public bool IsHeapValue => false;
@@ -16,12 +16,12 @@ public class HeapValueObject : IValueObject
         _type = type;
     }
 
-    public T GetNumericValue<T>() where T : INumber<T>
+    public virtual T GetNumericValue<T>() where T : INumber<T>
     {
         return default(T);
     }
 
-    public IValueObject Clone()
+    public virtual IValueObject Clone()
     {
         return new HeapValueObject(_type);
     }

@@ -15,7 +15,6 @@ public sealed class ClassValueObject : HeapValueObject
 
         for (int i = 0; i < cls.Fields.Count; i++)
         {
-            // TODO: implement
             _fields.Add(IValueObject.DefaultOf(cls.Fields[i].Type));
         }
     }
@@ -23,5 +22,15 @@ public sealed class ClassValueObject : HeapValueObject
     public IValueObject FieldValueOf(int index)
     {
         return _fields[index];
+    }
+
+    public void SetFieldValue(int index, IValueObject value)
+    {
+        _fields[index] = value;
+    }
+
+    public bool IsValidFieldIndex(int index)
+    {
+        return 0 <= index && index < _fields.Count;
     }
 }

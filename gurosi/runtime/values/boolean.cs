@@ -10,6 +10,12 @@ public sealed class BooleanValueObject : IValueObject
 
     private bool _value;
 
+    public bool Value
+    {
+        get => _value;
+        set => _value = value;
+    }
+
     public BooleanValueObject(bool value)
     {
         _value = value;
@@ -24,5 +30,15 @@ public sealed class BooleanValueObject : IValueObject
     public IValueObject Clone()
     {
         return new BooleanValueObject(_value);
+    }
+
+    public static BooleanValueObject True()
+    {
+        return new BooleanValueObject(true);
+    }
+
+    public static BooleanValueObject False()
+    {
+        return new BooleanValueObject(false);
     }
 }

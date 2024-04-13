@@ -16,6 +16,8 @@ public interface IValueObject
     public IValueObject Clone();
 
     public static readonly int Nullptr = 0;
+    public static readonly IValueObject NullRef = new RefValueObject(TypePath.NULL, Nullptr);
+    public static readonly IValueObject NullVal = new HeapValueObject(TypePath.NULL);
 
     public static IValueObject DefaultOf(TypePath type)
     {
@@ -48,17 +50,5 @@ public interface IValueObject
         {
             return new RefValueObject(type, IValueObject.Nullptr);
         }
-    }
-
-    public static bool IsNumericCalc(TypePath type)
-    {
-        if (type.CompareEquality(TypePath.INT) ||
-            type.CompareEquality(TypePath.FLOAT) ||
-            type.CompareEquality(TypePath.DOUBLE))
-        {
-            return true;
-        }
-
-        return false;
     }
 }

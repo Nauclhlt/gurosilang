@@ -10,6 +10,12 @@ public sealed class StringValueObject : IValueObject
 
     private string _value;
 
+    public string Value
+    {
+        get => _value;
+        set => _value = value;
+    }
+
     public StringValueObject(string value)
     {
         _value = value;

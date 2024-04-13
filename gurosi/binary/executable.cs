@@ -27,6 +27,7 @@ public sealed class Executable
             Console.Write(_entryCode.Code[i]);
             Console.Write("  ");
         }
+        Console.WriteLine();
         
 
 

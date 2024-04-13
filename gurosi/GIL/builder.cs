@@ -10,6 +10,23 @@ public sealed class Builder
     public Builder(SemanticCode[] codes)
     {
         _codes = codes;
+
+        ResolveGlblFuncConflicts();
+    }
+
+    private void ResolveGlblFuncConflicts()
+    {
+        FunctionIndexer indexer = new FunctionIndexer();
+        
+        foreach (var code in _codes)
+        {
+            for (int i = 0; i < code.GlobalFunctions.Count; i++)
+            {
+                Function func = code.GlobalFunctions[i];
+                string rawName = func.Name.Substring(0, func.Name.IndexOf('~'));
+                func.Name = rawName + "~" + indexer.GetIndex(rawName);
+            }
+        }
     }
 
     public Executable BuildExecutable(List<Error> errors)
