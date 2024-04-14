@@ -7,17 +7,48 @@ shorten collections;
 
 run
 {
-    let msg: string = "Hello world!";
-    let test: array<string> = alloc string[msg.len()];
+    let val: ClassB = new ClassB();
+    val.Value = 1;
+    val.Message = "Hello";
 
-    for i, 1 to msg.len() + 1
+    let reg: ClassA = val;
+    
+    let test: ClassB = reg as ClassB;
+
+    Log.println(test.Message);
+}
+
+class ClassB: public <- ClassA
+{
+    field public Message: string;
+}
+
+class ClassA: public
+{
+    field public Value: int;
+}
+
+how void writeLine(text: string)
+{
+    Log.println(text);
+}
+
+class Printer: public
+{
+    field private _print: funcptr;
+    field private _buf: array<any>;
+
+    init (print: funcptr): public
     {
-        test[i - 1] = msg.substring(0, i);
+        _print = print;
+        _buf = alloc any[1];
     }
 
-    for i, 0 to msg.len()
+    how void print(text: string): public
     {
-        Log.println(test[i]);
+        _buf[0] = text;
+
+        _print.call(_buf);
     }
 }
 
@@ -39,7 +70,7 @@ how void fizzbuzz(end: int)
         }
         else
         {
-            Log.println("____");
+            Log.println(str(i));
         }
     }
 }

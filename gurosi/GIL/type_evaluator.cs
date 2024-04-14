@@ -450,7 +450,7 @@ public static class TypeEvaluator
                     ClassBinary cls = runtime.GetClass(sourceType);
                     if (cls.HasFunction(name))
                     {
-                        FunctionBinary match = cls.MatchFunction(name, funcExpr, c);
+                        FunctionBinary match = cls.MatchFunction(name, funcExpr, c, sourceType);
                         return (match, cls, sourceType, dot.Source);
                     }
                     else
@@ -466,7 +466,6 @@ public static class TypeEvaluator
                     ClassBinary cls = runtime.GetClass(pureType);
                     if (cls.HasStcFunction(dot.Right))
                     {
-                        
                         FunctionBinary match = cls.MatchStcFunction(name, funcExpr, c);
                         
                         return (match, cls, pureType, dot.Source);
@@ -484,7 +483,8 @@ public static class TypeEvaluator
             // shortened or in class.
             if (c.HasClass)
             {
-                FunctionBinary f = c.ScopeClass.MatchFunction(ident.Identifier, funcExpr, c);
+                FunctionBinary f = c.ScopeClass.MatchFunction(ident.Identifier, funcExpr, c, c.ScopeClass.Path);
+
                 if (f is not null)
                 {
                     return (f, c.ScopeClass, c.ScopeClass.Path, ident);

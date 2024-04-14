@@ -9,6 +9,12 @@ public sealed class ArrayValueObject : HeapValueObject
     public int Length => _length;
     public IValueObject[] Body => _body;
 
+    public IValueObject this[int index]
+    {
+        get => _body[index];
+        set => _body[index] = value;
+    }
+
     public ArrayValueObject(TypePath elementType, int length)
         : base(new TypePath("arr", elementType.ToString()))
     {
@@ -23,12 +29,17 @@ public sealed class ArrayValueObject : HeapValueObject
 
     public override IValueObject Clone()
     {
-        ArrayValueObject dest = new ArrayValueObject(_type.GetArrayType(), _length);
+        ArrayValueObject dest = new (_type.GetArrayType(), _length);
         for (int i = 0; i < _length; i++)
         {
             dest.Body[i] = _body[i];
         }
 
         return dest;
+    }
+
+    public override string Str()
+    {
+        return $"{{Array length={_length}}}";
     }
 }

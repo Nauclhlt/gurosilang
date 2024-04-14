@@ -24,4 +24,9 @@ public sealed class DoubleValueObject : IValueObject
     {
         return new DoubleValueObject(_value);
     }
+
+    public string Str()
+    {
+        return _value.ToString();
+    }
 }

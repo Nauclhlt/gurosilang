@@ -14,7 +14,7 @@ public sealed class TypePath {
     
     public bool IsArray => ModuleName == "arr";
 
-    public bool IsGenericParam => ModuleName == "temp";
+    public bool IsGenericParam => ModuleName == "gen";
     public int GenericParamIndex => int.Parse(_name);
 
     public List<TypePath> Generics => _generics;
@@ -33,28 +33,28 @@ public sealed class TypePath {
 
     private TypePath()
     {
-        _generics = new List<TypePath>();
+        _generics = [];
     }
 
     public TypePath(string module, string name)
     {
-        _route = new string[] { module };
+        _route = [ module ];
         _name = name;
-        _generics = new List<TypePath>();
+        _generics = [];
     }
 
     public TypePath(string[] route, string name)
     {
         _route = route;
         _name = name;
-        _generics = new List<TypePath>();
+        _generics = [];
     }
 
     public TypePath(string module)
     {
-        _route = new[] { module };
+        _route = [ module ];
         _name = string.Empty;
-        _generics = new List<TypePath>();
+        _generics = [];
     }
 
     public static readonly TypePath NULL = new TypePath("sys", "null");
@@ -87,7 +87,7 @@ public sealed class TypePath {
         else if (type.Kind == TypeKind.Symbol)
         {
             Expression symbol = type.Symbol;
-            List<TypePath> generics = new List<TypePath>();
+            List<TypePath> generics = [];
 
             if (symbol is GenericExpression generic)
             {
@@ -231,14 +231,24 @@ public sealed class TypePath {
         return _route.SequenceEqual(t.Route);
     }
 
-    public bool IsCompatibleWith(TypePath t, RuntimeEnv runtime)
+    public bool IsCompatibleWith(TypePath t, RuntimeEnv runtime, bool casting = true)
+    {
+        return IsCompatibleWithInternal(t, type => runtime.GetClass(type), casting);
+    }
+
+    public bool IsCompatibleWith(TypePath t, SymbolStore symbols, bool casting =  true)
+    {
+        return IsCompatibleWithInternal(t, type => symbols.FindClass(type), casting);
+    }
+
+    private bool IsCompatibleWithInternal(TypePath t, Func<TypePath, ClassBinary> getClass, bool casting)
     {
         if (CompareEquality(t))
             return true;
 
         if (t.ModuleName == "sys" && t.Name == "arrbase" && this.IsArray)
             return true;
-        
+
         if (t.CompareEquality(ANY))  // any can bind any types.
         {
             return true;
@@ -248,14 +258,19 @@ public sealed class TypePath {
         {
             return true;  // any type can be null.
         }
-        
-        if (runtime.IsClass(this))
+
+        ClassBinary cls = getClass(this);
+        if (cls is not null)
         {
-            ClassBinary cls = runtime.GetClass(this);
-            if (cls.HasBaseType && cls.BaseType.IsCompatibleWith(t, runtime))
+            if (cls.HasBaseType && cls.BaseType.IsCompatibleWithInternal(t, getClass, casting))
             {
                 return true;
             }
+        }
+
+        if (casting && TypeEvaluator.ImplicitCastMap.Contains((this, t)))
+        {
+            return true;
         }
 
         return false;

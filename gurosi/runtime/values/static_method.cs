@@ -27,4 +27,9 @@ public sealed class StaticMethodNameObject : IValueObject
     {
         return new StaticMethodNameObject(_class, _function);
     }
+
+    public string Str()
+    {
+        return $"{_class.Path}.{_function.Name}";
+    }
 }

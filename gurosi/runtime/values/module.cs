@@ -24,4 +24,9 @@ public sealed class ModuleNameObject : IValueObject
     {
         return new ModuleNameObject(_name);
     }
+
+    public string Str()
+    {
+        return _name;
+    }
 }

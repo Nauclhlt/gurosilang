@@ -21,4 +21,14 @@ public static class ErrorUtil
     {
         runtime.RaiseRuntimeError(new RuntimeError(ErrorRsrc.LibNotFound, ErrorRsrc.LibNotFoundMsg));
     }
+
+    public static void RaiseNoReturnValue(this ProgramRuntime runtime)
+    {
+        runtime.RaiseRuntimeError(new RuntimeError(ErrorRsrc.NoReturnValue, ErrorRsrc.NoReturnValueMsg));
+    }
+
+    public static void RaiseInvalidCast(this ProgramRuntime runtime)
+    {
+        runtime.RaiseRuntimeError(new RuntimeError(ErrorRsrc.InvalidCast, ErrorRsrc.InvalidCastMsg));
+    }
 }

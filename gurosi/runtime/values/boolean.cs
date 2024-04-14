@@ -32,6 +32,11 @@ public sealed class BooleanValueObject : IValueObject
         return new BooleanValueObject(_value);
     }
 
+    public string Str()
+    {
+        return _value ? "true" : "false";
+    }
+
     public static BooleanValueObject True()
     {
         return new BooleanValueObject(true);

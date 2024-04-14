@@ -24,4 +24,9 @@ public sealed class GlobalFuncObject : IValueObject
     {
         return new GlobalFuncObject(_function);
     }
+
+    public string Str()
+    {
+        return $"{_function.Module}::{_function.Name}";
+    }
 }

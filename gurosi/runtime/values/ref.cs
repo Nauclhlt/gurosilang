@@ -37,4 +37,9 @@ public sealed class RefValueObject : IValueObject
     {
         return (T)Refer(heap);
     }
+
+    public string Str()
+    {
+        return $"PTR={_pointer}";
+    }
 }

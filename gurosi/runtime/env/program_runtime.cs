@@ -22,6 +22,8 @@ public sealed class ProgramRuntime
 
     public SymbolStore LoadedSymbols => _loadedSymbols;
 
+    public bool HasRuntimeError => _runtimeError is not null;
+
     public ProgramRuntime(Executable executable)
     {
         _memory = new RuntimeMemory();

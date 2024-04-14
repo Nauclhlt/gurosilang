@@ -24,4 +24,9 @@ public sealed class ClassNameObject : IValueObject
     {
         return new ClassNameObject(_class);
     }
+
+    public string Str()
+    {
+        return _class.Path.ToString();
+    }
 }

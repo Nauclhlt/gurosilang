@@ -345,7 +345,7 @@ public sealed class Compiler
             {
                 // value type check:
                 TypePath valueType = TypeEvaluator.Evaluate(ls.Value, c.Runtime, c);
-                bool validType = valueType.IsCompatibleWith(type, c.Runtime);
+                bool validType = valueType.IsCompatibleWith(type, c.Runtime, false);
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, type)))
                 {
                     //Console.WriteLine(valueType);
@@ -399,7 +399,7 @@ public sealed class Compiler
             {
                 // value type check:
                 TypePath valueType = TypeEvaluator.Evaluate(cs.Value, c.Runtime, c);
-                bool validType = valueType.IsCompatibleWith(type, c.Runtime);
+                bool validType = valueType.IsCompatibleWith(type, c.Runtime, false); ;
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, type)))
                 {
                     //Console.WriteLine(valueType);
@@ -491,8 +491,10 @@ public sealed class Compiler
         {
             int bodylen = env.Code.Count;
             c.CreateNewLoopScope();
-            env.Code.Add("cpl");
+            
             CompileStatement(env, c, ws.Body);
+
+            env.Code.Add("cpl");
             CompileExpression(env, c, ws.Condition);
             env.Code.Add("cjmp");
             int offsetIndex = env.Code.Count;
@@ -511,15 +513,18 @@ public sealed class Compiler
                 int addr = c.AllocAddr();
                 env.Code.Add("alloc");
                 env.Code.Add(addr.ToString());
+                env.Code.Add(TypePath.INT.ToString());
                 CompileExpression(env, c, fs.From);
                 env.Code.Add("pop");
                 env.Code.Add(addr.ToString());
                 c.DeclareLocal(fs.VarName, TypePath.INT, addr);
 
                 int bodylen = env.Code.Count;
+                
                 CompileStatement(env, c, fs.Body);
-                // i++
+
                 env.Code.Add("cpl");
+                // i++
                 env.Code.Add("push");
                 env.Code.Add(addr.ToString());
                 env.Code.Add("pushint");
@@ -662,7 +667,7 @@ public sealed class Compiler
             {
                 // type check
 
-                bool validType = valueType.IsCompatibleWith(lcl.Type, c.Runtime);
+                bool validType = valueType.IsCompatibleWith(lcl.Type, c.Runtime, false);
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, lcl.Type)))
                 {
                     env.Errors.Add(new Error(ErrorProvider.LocalAssignTypeMismatch(ident.Identifier, lcl.Type), errorToken.Point));
@@ -698,7 +703,7 @@ public sealed class Compiler
                         env.Errors.Add(new Error(ErrorProvider.NotAccessible(field.Name), ident.Token.Point));
                     }
 
-                    bool validType = valueType.IsCompatibleWith(field.Type, c.Runtime);
+                    bool validType = valueType.IsCompatibleWith(field.Type, c.Runtime, false);
 
                     if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, field.Type)))
                     {
@@ -707,7 +712,7 @@ public sealed class Compiler
                     }
                     
                     env.Code.Add("self");
-                    //CompileExpression(env, c, assign.Value);
+                    
                     valueCompiler();
 
                     if (!validType)
@@ -727,7 +732,7 @@ public sealed class Compiler
                         env.Errors.Add(new Error(ErrorProvider.NotAccessible(stc.Name), ident.Token.Point));
                     }
 
-                    bool validType = valueType.IsCompatibleWith(stc.Type, c.Runtime);
+                    bool validType = valueType.IsCompatibleWith(stc.Type, c.Runtime, false);
 
                     if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, stc.Type)))
                     {
@@ -773,7 +778,7 @@ public sealed class Compiler
                         env.Errors.Add(new Error(ErrorProvider.NotAccessible(field.Name), dot.Token.Point));
                     }
 
-                    bool validType = valueType.IsCompatibleWith(field.Type, c.Runtime);
+                    bool validType = valueType.IsCompatibleWith(field.Type, c.Runtime, false);
 
                     if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, field.Type)))
                     {
@@ -809,7 +814,7 @@ public sealed class Compiler
                         env.Errors.Add(new Error(ErrorProvider.NotAccessible(stc.Name), dot.Token.Point));
                     }
 
-                    bool validType = valueType.IsCompatibleWith(stc.Type, c.Runtime);
+                    bool validType = valueType.IsCompatibleWith(stc.Type, c.Runtime, false);
 
                     if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, stc.Type)))
                     {
@@ -852,7 +857,7 @@ public sealed class Compiler
             {
                 TypePath type = arrayType.GetArrayType();
                 
-                bool validType = valueType.IsCompatibleWith(type, c.Runtime);
+                bool validType = valueType.IsCompatibleWith(type, c.Runtime, false);
 
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, type)))
                 {
@@ -917,6 +922,16 @@ public sealed class Compiler
                 env.Code.Add("push");
                 env.Code.Add(lcl.Address.ToString());
             }
+            else if (c.HasClass && !c.Static && c.ScopeClass.HasFunction(ident.Identifier))
+            {
+                FunctionBinary func = c.ScopeClass.MatchFunction(ident.Identifier, funcExpr, c, c.ScopeClass.Path);
+                if (func is not null)
+                {
+                    env.Code.Add("self");
+                    env.Code.Add("sel");
+                    env.Code.Add(ident.Identifier);
+                }
+            }
             else if (c.HasClass && c.ScopeClass.HasField(ident.Identifier))
             {
                 env.Code.Add("self");
@@ -976,7 +991,7 @@ public sealed class Compiler
                 }
                 else if (cls.HasFunction(dot.Right))
                 {
-                    FunctionBinary f = cls.MatchFunction(dot.Right, funcExpr, c);
+                    FunctionBinary f = cls.MatchFunction(dot.Right, funcExpr, c, sourceType);
                     if (f is not null)
                     {
                         // if (!c.IsMethodAccessible(cls, f))
@@ -1121,6 +1136,7 @@ public sealed class Compiler
             {
                 ClassBinary cls = c.ScopeClass;
                 int idx = cls.GetFieldIndex(name);
+                env.Code.Add("self");
                 env.Code.Add("heap");
                 env.Code.Add(idx.ToString());
             }
@@ -1336,7 +1352,16 @@ public sealed class Compiler
 
             // TODO: pass the arg types.
             FuncExpression funcExpr = new FuncExpression(ptr.TargetFunction, ptr.ArgumentTypes.Select(x => new DummyExpression(x)).Cast<Expression>().ToList());
+            (FunctionBinary function, ClassBinary cb, TypePath type, Expression src) = TypeEvaluator.FindFunctionWithClassPathSource(funcExpr, c.Runtime, c);
+            
+            if (function is null)
+            {
+                env.Errors.Add(new Error(ErrorProvider.InvalidFunctionOverload(), ptr.TargetFunction.Token.Point));
+                return;
+            }
+            
             CompileFuncSymbol(env, c, ptr.TargetFunction, funcExpr);
+            env.Code[^1] += function.Name.Remove(0, function.Name.IndexOf('~'));
             env.Code.Add("fptr");
         }
         else if (expression is AllocExpression alloc)
@@ -1378,7 +1403,7 @@ public sealed class Compiler
                 if (cls.HasFunction("ctor"))
                 {
                     // with constructor.
-                    FunctionBinary constructor = cls.MatchFunction("ctor", new FuncExpression(null, ne.Arguments), c);
+                    FunctionBinary constructor = cls.MatchFunction("ctor", new FuncExpression(null, ne.Arguments), c, targetType);
                     if (constructor is not null)
                     {
                         if (!c.IsMethodAccessible(cls, constructor))
@@ -1437,7 +1462,7 @@ public sealed class Compiler
             if (function is not null)
             {
                 // type check
-                validType = valueType.IsCompatibleWith(argType, c.Runtime);
+                validType = valueType.IsCompatibleWith(argType, c.Runtime, false);
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, argType)))
                 {
                     env.Errors.Add(new Error(ErrorProvider.ArgumentTypeMismatch(i, argType), repToken.Point));

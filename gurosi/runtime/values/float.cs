@@ -24,4 +24,9 @@ public sealed class FloatValueObject : IValueObject
     {
         return new FloatValueObject(_value);
     }
+
+    public string Str()
+    {
+        return _value.ToString();
+    }
 }

@@ -15,6 +15,8 @@ public interface IValueObject
 
     public IValueObject Clone();
 
+    public string Str();
+
     public static readonly int Nullptr = 0;
     public static readonly IValueObject NullRef = new RefValueObject(TypePath.NULL, Nullptr);
     public static readonly IValueObject NullVal = new HeapValueObject(TypePath.NULL);
@@ -49,6 +51,18 @@ public interface IValueObject
         else
         {
             return new RefValueObject(type, IValueObject.Nullptr);
+        }
+    }
+
+    public static string AsStr(IValueObject value, ProgramRuntime runtime)
+    {
+        if (value is RefValueObject refv)
+        {
+            return refv.Refer(runtime.Heap).Str();
+        }
+        else
+        {
+            return value.Str();
         }
     }
 }

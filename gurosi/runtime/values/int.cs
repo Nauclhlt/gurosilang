@@ -24,4 +24,9 @@ public sealed class IntValueObject : IValueObject
     {
         return new IntValueObject(_value);
     }
+
+    public string Str()
+    {
+        return _value.ToString();
+    }
 }

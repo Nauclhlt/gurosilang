@@ -172,15 +172,21 @@ public sealed partial class RuntimeEnv
             {
                 continue;
             }
+
+            bool invalid = false;
             for (int k = 0; k < func.Arguments.Count; k++)
             {
                 TypePath argType = func.Arguments[k].Type;
                 TypePath callType = TypeEvaluator.Evaluate(calling.Arguments[k], c.Runtime, c);
                 if (!callType.IsCompatibleWith(argType, this))
                 {
-                    continue;
+                    invalid = true;
+                    break;
                 }
             }
+
+            if (invalid)
+                continue;
 
             return func;
         }
@@ -204,7 +210,7 @@ public sealed partial class RuntimeEnv
 
     public TypePath GetWithGeneric(TypePath sourceType, TypePath type)
     {
-        if (type.ModuleName == "gen")
+        if (type.IsGenericParam && sourceType.Generics.Count > 0)
         {
             return sourceType.Generics[type.GenericParamIndex];
         }

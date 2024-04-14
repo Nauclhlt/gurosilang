@@ -19,9 +19,9 @@ else
 {
     SemanticCode code = semantic.Code;
     Builder builder = new Builder([code]);
-    List<Error> errors = new List<Error>();
+    List<Error> errors = [];
     Executable exe = builder.BuildExecutable(errors);
-    if (errors.Any())
+    if (errors.Count != 0)
     {
         foreach (var error in errors)
         {
@@ -32,10 +32,16 @@ else
     else
     {
         //exe._PrintDebug();
-
+        
         ProgramRuntime runtime = new ProgramRuntime(exe);
 
         runtime.Execute();
+
+        if (runtime.HasRuntimeError)
+        {
+            Console.WriteLine(runtime.RuntimeError.ErrorCode + ":");
+            Console.WriteLine(runtime.RuntimeError.Message);
+        }
 
         Console.ReadLine();
     }

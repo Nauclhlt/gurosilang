@@ -25,4 +25,9 @@ public class HeapValueObject : IValueObject
     {
         return new HeapValueObject(_type);
     }
+
+    public virtual string Str()
+    {
+        return "!val";
+    }
 }

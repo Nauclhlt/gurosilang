@@ -5,7 +5,43 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gurosi", "gurosi\gurosi.csproj", "{865EA3D1-4695-4517-8219-C28751195EFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "test\test.csproj", "{BEEB9DB9-E31A-480C-B04E-1259D63A30F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{BEEB9DB9-E31A-480C-B04E-1259D63A30F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gurosic", "gurosic\gurosic.csproj", "{4C82D518-E008-4B04-A57E-753D2D7715DF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{11889C2B-1C26-411A-8113-83C3252089D3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "algorithm", "algorithm", "{55547941-4179-4B13-948B-322D99CD7E1E}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\GitProjects\gr\lib\algorithm\sort.gr = ..\..\GitProjects\gr\lib\algorithm\sort.gr
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "collections", "collections", "{7184B47A-82BD-4318-B0F7-016B92A7388B}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\GitProjects\gr\lib\collections\list.gr = ..\..\GitProjects\gr\lib\collections\list.gr
+		..\..\GitProjects\gr\lib\collections\queue.gr = ..\..\GitProjects\gr\lib\collections\queue.gr
+		..\..\GitProjects\gr\lib\collections\stack.gr = ..\..\GitProjects\gr\lib\collections\stack.gr
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "std", "std", "{E0106EC7-5114-4F21-8715-C0E06934D210}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\GitProjects\gr\lib\std\array.gr = ..\..\GitProjects\gr\lib\std\array.gr
+		..\..\GitProjects\gr\lib\std\conv.gr = ..\..\GitProjects\gr\lib\std\conv.gr
+		..\..\GitProjects\gr\lib\std\log.gr = ..\..\GitProjects\gr\lib\std\log.gr
+		..\..\GitProjects\gr\lib\std\math.gr = ..\..\GitProjects\gr\lib\std\math.gr
+		..\..\GitProjects\gr\lib\std\res.gr = ..\..\GitProjects\gr\lib\std\res.gr
+		..\..\GitProjects\gr\lib\std\string.gr = ..\..\GitProjects\gr\lib\std\string.gr
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stdio", "stdio", "{D659B5E4-1C89-4155-AF15-02338BF748B6}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\GitProjects\gr\lib\stdio\file.gr = ..\..\GitProjects\gr\lib\stdio\file.gr
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "meta", "meta", "{0BEC416E-4FCD-47DD-AFE4-FAB0F063EFA4}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\GitProjects\gr\lib\meta\func.gr = ..\..\GitProjects\gr\lib\meta\func.gr
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +57,20 @@ Global
 		{BEEB9DB9-E31A-480C-B04E-1259D63A30F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEEB9DB9-E31A-480C-B04E-1259D63A30F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEEB9DB9-E31A-480C-B04E-1259D63A30F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{55547941-4179-4B13-948B-322D99CD7E1E} = {11889C2B-1C26-411A-8113-83C3252089D3}
+		{7184B47A-82BD-4318-B0F7-016B92A7388B} = {11889C2B-1C26-411A-8113-83C3252089D3}
+		{E0106EC7-5114-4F21-8715-C0E06934D210} = {11889C2B-1C26-411A-8113-83C3252089D3}
+		{D659B5E4-1C89-4155-AF15-02338BF748B6} = {11889C2B-1C26-411A-8113-83C3252089D3}
+		{0BEC416E-4FCD-47DD-AFE4-FAB0F063EFA4} = {11889C2B-1C26-411A-8113-83C3252089D3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {29B6C7AD-7D2C-4C58-963B-D8F89D659DA8}

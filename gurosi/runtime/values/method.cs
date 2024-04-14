@@ -30,4 +30,9 @@ public sealed class MethodNameObject : IValueObject
     {
         return new MethodNameObject(_source, _class, _function);
     }
+
+    public string Str()
+    {
+        return $"{_class.Path}.{_function.Name}";
+    }
 }

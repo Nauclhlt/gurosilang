@@ -108,15 +108,21 @@ public sealed partial class ClassBinary : IBinary
             {
                 continue;
             }
+
+            bool invalid = false;
             for (int k = 0; k < func.Arguments.Count; k++)
             {
                 TypePath argType = func.Arguments[k].Type;
                 TypePath callType = TypeEvaluator.Evaluate(calling.Arguments[k], c.Runtime, c);
                 if (!callType.IsCompatibleWith(argType, c.Runtime))
                 {
-                    continue;
+                    invalid = true;
+                    break;
                 }
             }
+
+            if (invalid)
+                continue;
 
             return func;
         }
@@ -146,8 +152,9 @@ public sealed partial class ClassBinary : IBinary
         return null;
     }
 
-    public FunctionBinary MatchFunction(string name, FuncExpression calling, CompileContext c)
+    public FunctionBinary MatchFunction(string name, FuncExpression calling, CompileContext c, TypePath type)
     {
+
         for (int i = 0; i < _functions.Count; i++)
         {
             FunctionBinary func = _functions[i];
@@ -158,15 +165,22 @@ public sealed partial class ClassBinary : IBinary
             {
                 continue;
             }
+
+            bool invalid = false;
             for (int k = 0; k < func.Arguments.Count; k++)
             {
                 TypePath argType = func.Arguments[k].Type;
+                argType = c.Runtime.GetWithGeneric(type, argType);
                 TypePath callType = TypeEvaluator.Evaluate(calling.Arguments[k], c.Runtime, c);
                 if (!callType.IsCompatibleWith(argType, c.Runtime))
                 {
-                    continue;
+                    invalid = true;
+                    break;
                 }
             }
+
+            if (invalid)
+                continue;
 
             return func;
         }

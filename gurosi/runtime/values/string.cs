@@ -30,4 +30,9 @@ public sealed class StringValueObject : IValueObject
     {
         return new StringValueObject(_value);
     }
+
+    public string Str()
+    {
+        return _value;
+    }
 }

@@ -83,7 +83,7 @@ public sealed class LocalContext
             return;
 
         byte opcode = _code.ReadOpCode();
-        byte argnum = _code.ReadArgnum();
+        _code.ReadArgnum();
         
         OperandType[] operands = GIL.OperandMap[GIL.CodeMap[opcode]];
 
@@ -108,17 +108,6 @@ public sealed class LocalContext
         }
 
         _code.ReadInstLen();
-    }
-
-    private ArgumentList PopArguments(int count)
-    {
-        ArgumentList list = new ArgumentList(count);
-        for (int i = count - 1; i >= 0; i--)
-        {
-            list.Load(i, _mainStack.Pop());
-        }
-
-        return list;
     }
 
     private void BackInstruction()
@@ -146,13 +135,97 @@ public sealed class LocalContext
         }
     }
 
+    private void Continue()
+    {
+        if (_code.EndOfCode)
+            return;
+
+        while (true)
+        {
+            byte opcode = _code.ReadOpCode();
+
+            _code.ReadArgnum();
+
+            OperandType[] operands = GIL.OperandMap[GIL.CodeMap[opcode]];
+
+            if (operands is not null)
+            {
+                for (int i = 0; i < operands.Length; i++)
+                {
+                    OperandType type = operands[i];
+                    if (type == OperandType.Address)
+                        _code.ReadAddress();
+                    if (type == OperandType.Int)
+                        _code.ReadInt();
+                    if (type == OperandType.Boolean)
+                        _code.ReadBoolean();
+                    if (type == OperandType.Double)
+                        _code.ReadDouble();
+                    if (type == OperandType.Float)
+                        _code.ReadFloat();
+                    if (type == OperandType.String)
+                        _code.ReadString();
+                }
+            }
+
+            _code.ReadInstLen();
+
+            if (opcode == GIL.CPL)
+            {
+                break;
+            }
+        }
+    }
+
+    private void Break()
+    {
+        if (_code.EndOfCode)
+            return;
+
+        while (true)
+        {
+            byte opcode = _code.ReadOpCode();
+
+            _code.ReadArgnum();
+
+            OperandType[] operands = GIL.OperandMap[GIL.CodeMap[opcode]];
+
+            if (operands is not null)
+            {
+                for (int i = 0; i < operands.Length; i++)
+                {
+                    OperandType type = operands[i];
+                    if (type == OperandType.Address)
+                        _code.ReadAddress();
+                    if (type == OperandType.Int)
+                        _code.ReadInt();
+                    if (type == OperandType.Boolean)
+                        _code.ReadBoolean();
+                    if (type == OperandType.Double)
+                        _code.ReadDouble();
+                    if (type == OperandType.Float)
+                        _code.ReadFloat();
+                    if (type == OperandType.String)
+                        _code.ReadString();
+                }
+            }
+
+            _code.ReadInstLen();
+
+            if (opcode == GIL.BPL)
+            {
+                break;
+            }
+        }
+    }
+
     public bool RunInstruction()
     {
         if (_code.EndOfCode)
             return true;
 
         byte opcode = _code.ReadOpCode();
-        byte argnum = _code.ReadArgnum();
+        _code.ReadArgnum();
 
         bool jmpFlag = false;
 
@@ -195,6 +268,7 @@ public sealed class LocalContext
             case GIL.PUSHS:
                 {
                     // スタック上の値を一時スタックに積む。
+                    // ※取り出しなし
                     IValueObject source = _mainStack.Top();
                     _tempStack.Push(source.Clone());
                     break;
@@ -217,7 +291,15 @@ public sealed class LocalContext
             case GIL.POPF:
                 {
                     // メインスタック上から値をとりだし、その下に積まれたクラスのインスタンスにおけるi番目のフィールドに格納する。
+                    int index = _code.ReadInt();
+                    IValueObject value = _mainStack.Pop();
+                    RefValueObject targetRef = (RefValueObject)_mainStack.Pop();
 
+                    ClassValueObject target = targetRef.Refer<ClassValueObject>(_runtime.Heap);
+
+                    target.SetFieldValue(index, value.Clone());
+
+                    DebugWrite($"[DBG] Field set idx={index}");
                     break;
                 }
             case GIL.POPIDX:
@@ -582,6 +664,7 @@ public sealed class LocalContext
                     // 指定したアドレスを指定した型で確保する。
                     int addr = _code.ReadInt();
                     TypePath type = TypePath.FromString(_code.ReadString());
+                    type = WithGenerics(type);
 
                     _memory.Alloc(addr);
                     _memory.Write(addr, IValueObject.DefaultOf(type));
@@ -590,10 +673,11 @@ public sealed class LocalContext
                     break;
                 }
             case GIL.ARR:
-                {
+                    {
                     // 指定した型の配列を作成して、スタック上に積む。
                     // スタック上の値を長さとする。
                     TypePath elementType = TypePath.FromString(_code.ReadString());
+                    elementType = WithGenerics(elementType);
                     IValueObject lengthSource = _mainStack.Pop();
                     int length = lengthSource.GetNumericValue<int>();
 
@@ -613,7 +697,7 @@ public sealed class LocalContext
                     // 指定したクラスのインスタンスを作成する。
                     TypePath classType = TypePath.FromString(_code.ReadString());
 
-                    ClassValueObject value = new ClassValueObject(_loadedSymbols.FindClass(classType));
+                    ClassValueObject value = new ClassValueObject(_loadedSymbols.FindClass(classType), classType);
 
                     int addr = _runtime.Heap.Alloc();
                     _runtime.Heap.Write(addr, value);
@@ -624,7 +708,8 @@ public sealed class LocalContext
             case GIL.RET:
                 {
                     // スタック上の値を取り出し、呼び出し元に返却する。
-                    break;
+                    _code.ReadInstLen();
+                    return true;
                 }
             case GIL.ERR:
                 {
@@ -710,13 +795,13 @@ public sealed class LocalContext
                     if (top is MethodNameObject method)
                     {
                         _runtime.CallMethod(method.Class, method.Function, method.Source,
-                            PopArguments(method.Function.Arguments.Count));
+                            _runtime.PopArguments(method.Function.Arguments.Count));
 
                         DebugWrite($"[DBG] Call  name={method.Function.Name}");
                     }
                     else if (top is StaticMethodNameObject stcm)
                     {
-                        _runtime.CallStaticMethod(stcm.Class, stcm.Function, PopArguments(stcm.Function.Arguments.Count));
+                        _runtime.CallStaticMethod(stcm.Class, stcm.Function, _runtime.PopArguments(stcm.Function.Arguments.Count));
 
                         DebugWrite($"[DBG] Call  name={stcm.Function.Name}");
                     }
@@ -725,11 +810,11 @@ public sealed class LocalContext
                         ArgumentList args;
                         if (func.Function.IsExtendR)
                         {
-                            args = PopArguments(func.Function.Arguments.Count + 1);
+                            args = _runtime.PopArguments(func.Function.Arguments.Count + 1);
                         }
                         else
                         {
-                            args = PopArguments(func.Function.Arguments.Count);
+                            args = _runtime.PopArguments(func.Function.Arguments.Count);
                         }
                         _runtime.CallFunction(func.Function, args);
                         DebugWrite($"[DBG] Call  name={func.Function.Name}");
@@ -744,9 +829,17 @@ public sealed class LocalContext
                     IntValueObject index = (IntValueObject)_mainStack.Pop();
                     RefValueObject source = (RefValueObject)_mainStack.Pop();
 
+                    int idx = index.GetNumericValue<int>();
+
                     ArrayValueObject arr = source.Refer<ArrayValueObject>(_runtime.Heap);
 
-                    _mainStack.Push(arr.Body[index.GetNumericValue<int>()].Clone());
+                    if (idx < 0 || idx >= arr.Length)
+                    {
+                        _runtime.RaiseIndexOutOfRange();
+                        break;
+                    }
+
+                    _mainStack.Push(arr.Body[idx].Clone());
 
                     break;
                 }
@@ -764,21 +857,29 @@ public sealed class LocalContext
             case GIL.CPL:
                 {
                     // continueで移動するラベル。
+                    // 何も処理しない。
                     break;
                 }
             case GIL.BPL:
                 {
                     // breakで移動するラベル。
+                    // 何も処理しない。
                     break;
                 }
             case GIL.CONT:
                 {
                     // continue
+                    _code.ReadInstLen();
+                    Continue();
+                    jmpFlag = true;
                     break;
                 }
             case GIL.BRK:
                 {
                     // break
+                    _code.ReadInstLen();
+                    Break();
+                    jmpFlag = true;
                     break;
                 }
             case GIL.HEAP:
@@ -859,11 +960,59 @@ public sealed class LocalContext
             case GIL.CSTOBJ:
                 {
                     // スタック上のオブジェクトを目的の型にキャストする。
+
+                    IValueObject from = _mainStack.Pop();
+                    TypePath type = TypePath.FromString(_code.ReadString());
+                    type = WithGenerics(type);
+
+                    if (from is RefValueObject rv)
+                    {
+                        // reference type casting.
+
+                        // down-casting
+                        if (from.Type.IsCompatibleWith(type, _loadedSymbols, casting: false))
+                        {
+                            _mainStack.Push(new RefValueObject(type, rv.HeapPointer));
+                        }
+                        // up-casting
+                        else
+                        {
+                            ClassValueObject ac = rv.Refer<ClassValueObject>(_runtime.Heap);
+                            if (ac.Type.IsCompatibleWith(type, _loadedSymbols, casting: false))
+                            {
+                                _mainStack.Push(new RefValueObject(type, rv.HeapPointer));
+                            }
+                            else
+                            {
+                                _runtime.RaiseInvalidCast();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _mainStack.Push(from.Clone());
+                    }
+                    
+
                     break;
                 }
             case GIL.FPTR:
                 {
                     // スタック上の関数のポインタを取得し、スタックに積む。
+                    IValueObject value = _mainStack.Pop();
+                    if (value is MethodNameObject m)
+                    {
+                        _mainStack.Push(FunctionPointerObject.MakeMethod(m.Class, m.Function, m.Source));
+                    }
+                    else if (value is GlobalFuncObject g)
+                    {
+                        _mainStack.Push(FunctionPointerObject.MakeGlobalFunc(g.Function));
+                    }
+                    else if (value is StaticMethodNameObject s)
+                    {
+                        _mainStack.Push(FunctionPointerObject.MakeStaticMethod(s.Class, s.Function));
+                    }
+
                     break;
                 }
             default:
@@ -881,9 +1030,32 @@ public sealed class LocalContext
         return false;
     }
 
-    private void DebugWrite(string msg)
+    private TypePath WithGenerics(TypePath type)
     {
-        return;
-        Console.WriteLine(msg);
+        if (!type.IsGenericParam)
+            return type;
+
+        if (_callContext == CallContext.Method)
+        {
+            ClassValueObject cls = _contextSelf.Refer<ClassValueObject>(_runtime.Heap);
+
+            if (cls.Generics.Count == 0)
+                return type;
+            else
+            {
+                return cls.Generics[type.GenericParamIndex];
+            }
+        }
+        else
+        {
+            // FIXME: ??
+            // when implementing static function with generics.
+            return type;
+        }
+    }
+
+    private static void DebugWrite(string msg)
+    {
+        //Console.WriteLine(msg);
     }
 }
