@@ -1,0 +1,92 @@
+module std;
+shorten std;
+shorten collections;
+
+how int len(): extend<string> this
+{
+    nvcall "sys" "string" "length" (this);
+    return nvretv int;
+}
+
+how string substring(start: int, length: int): extend<string> this
+{
+    if (start < 0 || start + length > this.len())
+    {
+        err StdRes.indexOutOfRange() "Specified index is out of range.";
+    }
+
+    nvcall "sys" "string" "substring" (this, start, length);
+    return nvretv string;
+}
+
+how int indexOf(value: string): extend<string> this
+{
+    nvcall "sys" "string" "indexOf" (this, value);
+    return nvretv int;
+}
+
+how string replace(from: string, to_: string): extend<string> this
+{
+    nvcall "sys" "string" "replace" (this, from, to_);
+    return nvretv string;
+}
+
+how array<string> split(delimiter: string, max: int): extend<string> this
+{
+    nvcall "sys" "string" "split" (this, delimiter, max);
+    return nvretv array<string>;
+}
+
+how array<string> split(delimiter: string): extend<string> this
+{
+    return this.split(this, 214748360);
+}
+
+how boolean startsWith(value: string): extend<string> this
+{
+    if (this.len() < value.len())
+        return false;
+    
+    let head: string = this.substring(0, value.len());
+    return head == value;
+}
+
+how boolean endsWith(value: string): extend<string> this
+{
+    if (this.len() < value.len())
+        return false;
+    
+    let valueLength: int = value.len();
+    let tail: string = this.substring(this.len() - valueLength, valueLength);
+
+    return tail == value;
+}
+
+how string at(index: int): extend<string> this
+{
+    if index < 0 || index >= this.len()
+    {
+        err StdRes.indexOutOfRange() "Specified index is out of range.";
+    }
+
+    return this.substring(index, 1);
+}
+
+how List<string> toCharList(): extend<string> this
+{
+    let list: List<string> = new List<string>();
+    let length: int = this.len();
+    for i, 0 to length
+    {
+        let c: string = this.substring(i, 1);
+        list.add(c);
+    }
+
+    return list;
+}
+
+how string str(value: any)
+{
+    nvcall "sys" "string" "as_str" (value);
+    return nvretv string;
+}

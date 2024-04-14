@@ -1,0 +1,39 @@
+module std;
+shorten std;
+
+class Log: public {
+    init (): private
+    {
+    }
+
+    how void println(text: string): public, static
+    {
+        nvcall "sys" "log" "println" (text);
+    }
+    
+    how void println(value: any): public, static
+    {
+        nvcall "sys" "log" "println_v" (value);
+    }
+
+    how void print(text: string): public, static
+    {
+        nvcall "sys" "log" "print" (text);
+    }
+
+    how void print(value: any): public, static
+    {
+        nvcall "sys" "log" "print_v" (value);
+    }
+
+    how string scanln(): public, static
+    {
+        nvcall "sys" "log" "scanln" ();
+        return nvretv string;
+    }
+
+    how void clear(): public, static
+    {
+        nvcall "sys" "log" "clear" ();
+    }
+}

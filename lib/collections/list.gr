@@ -1,0 +1,99 @@
+module collections;
+
+shorten collections;
+shorten std;
+
+class List<T>: public
+{
+    field private _capacity: int;
+    field private _size: int;
+    field private _items: array<<T>>;
+
+    init (): public
+    {
+        _capacity = 32;
+        _size = 0;
+        _items = alloc <T>[_capacity];
+    }
+
+    init (capacity: int): public
+    {
+        _capacity = capacity;
+        _size = 0;
+        _items = alloc <T>[_capacity];
+    }
+
+    how void add(item: <T>): public
+    {
+        # expand items
+        if _size >= _capacity
+        {
+            let newItems: array<<T>> = alloc <T>[_capacity * 2];
+            Array.copy(_items, newItems, _capacity);
+            _capacity = _capacity * 2;
+
+            _items = newItems;
+        }
+        
+        _items[_size] = item;
+        _size = _size + 1;
+    }
+
+    how <T> at(index: int): public
+    {
+        if index < 0 || index >= len()
+        {
+            err StdRes.indexOutOfRange() "Specified index is out of range.";
+        }
+
+        return _items[index];
+    }
+
+    how int len(): public
+    {
+        return _size;
+    }
+
+    how int capacity(): public
+    {
+        return _capacity;
+    }
+
+    how void clear(): public
+    {
+        _size = 0;
+    }
+
+    how void remove(index: int): public
+    {
+        if index < 0 || index >= len()
+        {
+            err StdRes.indexOutOfRange() "Specified index is out of range.";
+        }
+
+        for i, index to _size - 1
+        {
+            _items[i] = _items[i + 1];
+        }
+
+        _size--;
+    }
+
+    how int find(item: <T>): public
+    {
+        for i, 0 to _size
+        {
+            if _items[i] == item
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    how boolean contains(item: <T>): public
+    {
+        return find(item) != -1;
+    }
+}

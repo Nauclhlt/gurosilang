@@ -1,0 +1,65 @@
+module collections;
+shorten collections;
+shorten std;
+
+class Queue<T>: public
+{
+    field private _items: List<<T>>;
+
+    init (): public
+    {
+        _items = new List<<T>>();
+    }
+
+    init (capacity: int): public
+    {
+        _items = new List<<T>>(capacity);
+    }
+    
+    how void enqueue(item: <T>): public
+    {
+        _items.add(item);
+    }
+
+    how <T> peek(): public
+    {
+        if len() == 0
+        {
+            err StdRes.invalidOperation() "Queue is empty.";
+        }
+
+        return _items.at(0);
+    }
+
+    how <T> dequeue(): public
+    {
+        if len() == 0
+        {
+            err StdRes.invalidOperation() "Queue is empty.";
+        }
+
+        let temp: <T> = _items.at(0);
+        _items.remove(0);
+        return temp;
+    }
+
+    how void clear(): public
+    {
+        _items.clear();
+    }
+
+    how int len(): public
+    {
+        return _items.len();
+    }
+
+    how int capacity(): public
+    {
+        return _items.capacity();
+    }
+
+    how boolean contains(item: <T>): public
+    {
+        return _items.contains(item);
+    }
+}

@@ -1,0 +1,92 @@
+module std;
+shorten collections;
+
+how int len(): extend<arrbase> this
+{
+    nvcall "sys" "array" "length" (this);
+    return nvretv int;
+}
+
+class Array: public
+{
+    init (): private
+    {
+    }
+
+    how void copy(source: arrbase, dest: arrbase): public, static
+    {
+        nvcall "sys" "array" "copy" (source, dest);
+    }
+
+    how void copy(source: arrbase, dest: arrbase, count: int): public, static
+    {
+        nvcall "sys" "array" "copy_c" (source, dest, count);
+    }
+
+    how void copy(source: arrbase, sourceIndex: int, dest: arrbase, destIndex: int, count: int): public, static
+    {
+        nvcall "sys" "array" "copy_ic" (source, sourceIndex, dest, destIndex, count);
+    }
+}
+
+class ArrayController<T>: public
+{
+    init (): public
+    {
+    }
+
+    how void fill(target: array<<T>>, value: <T>): public
+    {
+        for i, 0 to target.len() - 1
+        {
+            target[i] = value;
+        }
+    }
+
+    how int find(target: array<<T>>, value: <T>): public
+    {
+        let index: int = -1;
+        for i, 0 to target.len() - 1
+        {
+            if target[i] == value
+            {
+                index = i;
+                break;
+            }
+        }
+
+        return index;
+    }
+
+    how int count(target: array<<T>>, value: <T>): public
+    {
+        let count: int = 0;
+        for i, 0 to target.len() - 1
+        {
+            if target[i] == value
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    how boolean checkAny(target: array<<T>>, predicate: funcptr): public
+    {
+        let length: int = target.len();
+        let args: array<any> = alloc any[1];
+        for i, 0 to length - 1
+        {
+            args[0] = target[i];
+            let val: boolean = predicate.call_ret(args) as boolean;
+
+            if val
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

@@ -1,0 +1,111 @@
+module std;
+shorten std;
+
+class Math: public 
+{
+    init (): private
+    {
+    }
+
+    how float piF(): public, static
+    {
+        return 3.14159265f;
+    }
+
+    how double pi(): public, static
+    {
+        return 3.1415926535d;
+    }
+
+    how float eF(): public, static
+    {
+        return 2.7182818f;
+    }
+
+    how double e(): public, static
+    {
+        return 2.7182818284d;
+    }
+
+    how float radians(degrees: float): public, static
+    {
+        return degrees / 180.0f * Math.piF();
+    }
+
+    how float degrees(radians: float): public, static
+    {
+        return radians / Math.piF() * 180.0f;
+    }
+
+    how float sin(radians: float): public, static
+    {
+        nvcall "sys" "math" "sinf" (radians);
+        return nvretv float;
+    }
+
+    how float cos(radians: float): public, static
+    {
+        nvcall "sys" "math" "cosf" (radians);
+        return nvretv float;
+    }
+
+    how float tan(radians: float): public, static
+    {
+        nvcall "sys" "math" "tanf" (radians);
+        return nvretv float;
+    }
+
+    how float asin(sine: float): public, static
+    {
+        nvcall "sys" "math" "asinf" (sine);
+        return nvretv float;
+    }
+
+    how float acos(cosine: float): public, static
+    {
+        nvcall "sys" "math" "acosf" (cosine);
+        return nvretv float;
+    }
+
+    how float atan(tangent: float): public, static
+    {
+        nvcall "sys" "math" "atanf" (tangent);
+        return nvretv float;
+    }
+
+    how float atan2(y: float, x: float): public, static
+    {
+        nvcall "sys" "math" "atan2f" (y, x);
+        return nvretv float;
+    }
+
+    how float log2(base: float): public, static
+    {
+        nvcall "sys" "math" "log2f" (base);
+        return nvretv float;
+    }
+
+    how float log10(base: float): public, static
+    {
+        nvcall "sys" "math" "log10f" (base);
+        return nvretv float;
+    }
+
+    how float log(base: float): public, static
+    {
+        nvcall "sys" "math" "logf" (base);
+        return nvretv float;
+    }
+
+    how float round(value: float, digits: int): public, static
+    {
+        nvcall "sys" "math" "roundf" (value, digits);
+        return nvretv float;
+    }
+
+    how float sqrt(value: float): public, static
+    {
+        nvcall "sys" "math" "sqrtf" (value);
+        return nvretv float;
+    }
+}

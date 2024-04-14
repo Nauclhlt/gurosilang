@@ -10,11 +10,51 @@ public sealed class Executable
     public List<string> AllImports => _allImports;
     public Library SelfLibrary => _selfLibrary;
 
+    private Executable()
+    {
+        _allImports = new List<string>();
+        _entryCode = new CodeBinary();
+    }
+
     public Executable(CodeBinary code, List<string> allImports, Library selfLibrary)
     {
         _entryCode = code;
         _allImports = allImports.Distinct().ToList();
         _selfLibrary = selfLibrary;
+    }
+
+    public void Write(string filename)
+    {
+        using FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        using BinaryWriter writer = new BinaryWriter(fs, Encoding.Unicode);
+
+        writer.Write(_allImports.Count);
+        for (int i = 0; i < _allImports.Count; i++)
+        {
+            writer.Write(_allImports[i]);
+        }
+
+        _selfLibrary.Write(writer);
+        _entryCode.Write(writer);
+    }
+
+    public static Executable Load(string filename)
+    {
+        Executable e = new Executable();
+
+        using FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        using BinaryReader reader = new BinaryReader(fs, Encoding.Unicode);
+
+        int c = reader.ReadInt32();
+        for (int i = 0; i < c; i++)
+        {
+            e._allImports.Add(reader.ReadString());
+        }
+
+        e._selfLibrary = Library.Load(filename, reader);
+        e._entryCode.Read(reader);
+
+        return e;
     }
 
     public void _PrintDebug()

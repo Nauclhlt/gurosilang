@@ -1,0 +1,34 @@
+module stdio;
+shorten stdio;
+
+class File: public
+{
+    field private _path: string;
+    field private _text_content: string;
+    field private _bytes: array<int>;  # needs support of byte type.
+
+    init (): private
+    {
+    }
+
+    how string contentAsString(): public
+    {
+        return _text_content;
+    }
+
+    how void rewriteString(content: string): public
+    {
+        nvcall "sys" "io" "filewritestring" (_path, content);
+    }
+
+    how File read(path: string): public, static
+    {
+        nvcall "sys" "io" "readbytes" (path);
+        let file: File = new File();
+        file._path = path;
+        file._bytes = nvretv array<int>;
+        nvcall "sys" "io" "bytestostr" (file._bytes);
+        file._text_content = nvretv string;
+        return file;
+    }
+}

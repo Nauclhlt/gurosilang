@@ -1,0 +1,65 @@
+module collections;
+shorten collections;
+shorten std;
+
+class Stack<T>: public
+{
+    field private _items: List<<T>>;
+
+    init (): public
+    {
+        _items = new List<<T>>();
+    }
+
+    init (capacity: int): public
+    {
+        _items = new List<<T>>(capacity);
+    }
+    
+    how void push(item: <T>): public
+    {
+        _items.add(item);
+    }
+
+    how <T> peek(): public
+    {
+        if len() == 0
+        {
+            err StdRes.invalidOperation() "Stack is empty.";
+        }
+        
+        return _items.at(_items.len() - 1);
+    }
+
+    how <T> pop(): public
+    {
+        if len() == 0
+        {
+            err StdRes.invalidOperation() "Stack is empty.";
+        }
+
+        let temp: <T> = _items.at(_items.len() - 1);
+        _items.remove(_items.len() - 1);
+        return temp;
+    }
+
+    how void clear(): public
+    {
+        _items.clear();
+    }
+
+    how int len(): public
+    {
+        return _items.len();
+    }
+
+    how int capacity(): public
+    {
+        return _items.capacity();
+    }
+
+    how boolean contains(item: <T>): public
+    {
+        return _items.contains(item);
+    }
+}

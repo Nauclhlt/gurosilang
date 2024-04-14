@@ -1,0 +1,15 @@
+module meta;
+shorten meta;
+shorten std;
+shorten collections;
+
+how void call(args: array<any>): extend<funcptr> this
+{
+    nvcall "meta" "funcptr" "invoke" (this, args);
+}
+
+how any call_ret(args: array<any>): extend<funcptr> this
+{
+    nvcall "meta" "funcptr" "invoke_ret" (this, args);
+    return nvretv any;
+}

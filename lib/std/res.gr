@@ -1,0 +1,20 @@
+module std;
+shorten std;
+
+class StdRes: public
+{
+    how string indexOutOfRange(): public, static
+    {
+        return "IndexOutOfRange";
+    }
+
+    how string invalidFormat(): public, static
+    {
+        return "InvalidFormat";
+    }
+
+    how string invalidOperation(): public, static
+    {
+        return "InvalidOperation";
+    }
+}

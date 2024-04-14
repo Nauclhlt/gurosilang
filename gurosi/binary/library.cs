@@ -1,3 +1,5 @@
+using System.Reflection.PortableExecutable;
+
 namespace Gurosi;
 
 public sealed class Library
@@ -19,13 +21,8 @@ public sealed class Library
         _imported = new List<string>();
     }
 
-    public void Write(string filename)
+    public void Write(BinaryWriter writer)
     {
-        _fileName = filename;
-
-        using FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        using BinaryWriter writer = new BinaryWriter(fs, Encoding.Unicode);
-
         writer.Write(_classes.Count);
         for (int i = 0; i < _classes.Count; i++)
         {
@@ -39,13 +36,20 @@ public sealed class Library
         }
     }
 
-    public static Library Load(string filename)
+    public void Write(string filename)
     {
-        Library lib = new Library();
-        lib._fileName = filename;
+        _fileName = filename;
 
         using FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        using BinaryReader reader = new BinaryReader(fs, Encoding.Unicode);
+        using BinaryWriter writer = new BinaryWriter(fs, Encoding.Unicode);
+
+        Write(writer);
+    }
+
+    public static Library Load(string fname, BinaryReader reader)
+    {
+        Library lib = new Library();
+        lib._fileName = fname;
 
         int cc = reader.ReadInt32();
         for (int i = 0; i < cc; i++)
@@ -62,6 +66,14 @@ public sealed class Library
         }
 
         return lib;
+    }
+
+    public static Library Load(string filename)
+    {
+        using FileStream fs = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        using BinaryReader reader = new BinaryReader(fs, Encoding.Unicode);
+
+        return Load(filename, reader);
     }
 
     public void _PrintDebug()
