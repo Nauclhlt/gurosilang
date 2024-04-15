@@ -12,7 +12,8 @@ using GrParser = Gurosi.Parser;
 
 if (args.Length == 0)
 {
-    Println("Pass at least onme argument.", ConsoleColor.Red);
+    Println("Pass at least one argument.", ConsoleColor.Red);
+    return;
 }
 
 string action = args[0].ToLower();

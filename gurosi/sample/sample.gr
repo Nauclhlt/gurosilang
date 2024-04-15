@@ -7,15 +7,9 @@ shorten collections;
 
 run
 {
-    let val: ClassB = new ClassB();
-    val.Value = 1;
-    val.Message = "Hello";
-
-    let reg: ClassA = val;
-    
-    let test: ClassB = reg as ClassB;
-
-    Log.println(test.Message);
+    let value: string = Log.scanln();
+    Log.print("You typed: ");
+    Log.println(value);
 }
 
 class ClassB: public <- ClassA

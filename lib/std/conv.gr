@@ -21,6 +21,7 @@ class Conv: public
         let chars: List<string> = text.toCharList();
 
         let result: int = 0;
+        let factor: int = 1;
         
         for i, 0 to chars.len()
         {
@@ -32,7 +33,8 @@ class Conv: public
                 err StdRes.invalidFormat() "Specified string is not in valid format.";
             }
 
-            result = result + digit * (i + 1);
+            result += digit * factor;
+            factor *= 10;
         }
 
         return result;

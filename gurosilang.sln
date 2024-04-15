@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gurosi", "gurosi\gurosi.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{BEEB9DB9-E31A-480C-B04E-1259D63A30F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gurosic", "gurosic\gurosic.csproj", "{4C82D518-E008-4B04-A57E-753D2D7715DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gurosic", "gurosic\gurosic.csproj", "{4C82D518-E008-4B04-A57E-753D2D7715DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "grun", "grun\grun.csproj", "{C092C930-BEE8-4C82-888B-3D3D25FC9682}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C82D518-E008-4B04-A57E-753D2D7715DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C092C930-BEE8-4C82-888B-3D3D25FC9682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C092C930-BEE8-4C82-888B-3D3D25FC9682}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C092C930-BEE8-4C82-888B-3D3D25FC9682}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C092C930-BEE8-4C82-888B-3D3D25FC9682}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
