@@ -1,5 +1,6 @@
 ﻿using Gurosi;
 
+
 string sourceCode = File.ReadAllText(@"C:\workspace\CSharp\VsProjects\gurosilang\gurosi\sample\sample.gr");
 Tokenizer lexer = new Tokenizer(sourceCode);
 Lexical lexical = lexer.Tokenize();
@@ -32,7 +33,7 @@ else
     else
     {
         //exe._PrintDebug();
-        
+
         ProgramRuntime runtime = new ProgramRuntime(exe);
 
         runtime.Execute();

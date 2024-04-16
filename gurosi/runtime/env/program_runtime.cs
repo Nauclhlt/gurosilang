@@ -109,6 +109,7 @@ public sealed class ProgramRuntime
                 else
                 {
                     LocalContext last = _callStack.Pop();
+                    
                     _memory.Release(last.Memory);
                 }
             }

@@ -18,7 +18,7 @@ public sealed class SlicedMemory
 
     public void Alloc(int address)
     {
-        _length = int.Max(_length, address - _start + 1);
+        _length = int.Max(_length, address + 1);
         _rtMemory.Alloc(address + _start);
     }
 

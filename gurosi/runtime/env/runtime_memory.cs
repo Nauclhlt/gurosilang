@@ -2,14 +2,24 @@ namespace Gurosi;
 
 public sealed class RuntimeMemory
 {
-    private const int MemorySize = 1024;
+    private const int DefaultMemorySize = 1024;
 
     private IValueObject[] _memory;
     private int _maxIndex = -1;
 
     public RuntimeMemory()
+        : this(DefaultMemorySize)
     {
-        _memory = new IValueObject[MemorySize];
+    }
+
+    public RuntimeMemory(int memorySize)
+    {
+        if (memorySize < 0)
+        {
+            throw new ArgumentException("Memory size needs to be positive.", nameof(memorySize));
+        }
+
+        _memory = new IValueObject[memorySize];
     }
 
     public SlicedMemory Slice()
@@ -25,6 +35,8 @@ public sealed class RuntimeMemory
     public void Release(SlicedMemory memory)
     {
         Array.Fill(_memory, null, memory.Start, memory.Length);
+
+        _maxIndex -= memory.Length;
     }
 
     public void Write(int address, IValueObject value)

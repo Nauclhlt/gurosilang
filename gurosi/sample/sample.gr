@@ -7,44 +7,9 @@ shorten collections;
 
 run
 {
-    let value: string = Log.scanln();
-    Log.print("You typed: ");
-    Log.println(value);
+    
 }
 
-class ClassB: public <- ClassA
-{
-    field public Message: string;
-}
-
-class ClassA: public
-{
-    field public Value: int;
-}
-
-how void writeLine(text: string)
-{
-    Log.println(text);
-}
-
-class Printer: public
-{
-    field private _print: funcptr;
-    field private _buf: array<any>;
-
-    init (print: funcptr): public
-    {
-        _print = print;
-        _buf = alloc any[1];
-    }
-
-    how void print(text: string): public
-    {
-        _buf[0] = text;
-
-        _print.call(_buf);
-    }
-}
 
 how void fizzbuzz(end: int)
 {
