@@ -46,7 +46,8 @@ public static class TokenData {
         { "const", TokenType.Const },
         { "null", TokenType.Null },
         { "as", TokenType.As },
-        { "funcptr", TokenType.FuncPtr }
+        { "funcptr", TokenType.FuncPtr },
+        { "memsize", TokenType.Memsize }
     };
 
     private static readonly HashSet<char> IdentChars = new()

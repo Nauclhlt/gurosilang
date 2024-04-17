@@ -91,7 +91,11 @@ public sealed class Builder
         if (errors.Count > 0)
             return null;
 
-        return new Executable(code, self.Imported, self);
+        Executable exe = new Executable(code, self.Imported, self);
+
+        exe.MemorySize = int.Max(exe.MemorySize, _codes.Max(x => x.MemSize));
+
+        return exe;
     }
 
     public Library BuildLibrary(List<Error> errors)

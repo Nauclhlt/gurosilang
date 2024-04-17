@@ -38,6 +38,8 @@ public static class ErrorProvider
             => $"[E016] A constant must have an initial value.";
         public static string InvalidPointerTarget()
             => $"[E017] Cannot retrieve the pointer for the specified value.";
+        public static string InvalidMemorySize(int value)
+            => $"[E018] '{value}' cannot be used as the memory size. Memory size needs to be a number not less than 32.";
     }
 
     public static string InvalidType(TypePath type)

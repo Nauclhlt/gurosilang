@@ -26,7 +26,7 @@ public sealed class ProgramRuntime
 
     public ProgramRuntime(Executable executable)
     {
-        _memory = new RuntimeMemory();
+        _memory = new RuntimeMemory(executable.MemorySize);
         _heap = new RuntimeHeap();
         _callStack = new Stack<LocalContext>();
         _mainStack = new RuntimeStack();

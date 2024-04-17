@@ -5,9 +5,12 @@ shorten Hangman;
 shorten std;
 shorten collections;
 
+memsize 1920;
+ 
+
 run
 {
-    
+    fizzbuzz(32);
 }
 
 

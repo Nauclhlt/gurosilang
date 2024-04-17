@@ -5,10 +5,17 @@ public sealed class Executable
     private CodeBinary _entryCode;
     private List<string> _allImports;
     private Library _selfLibrary;
+    private int _memorySize = 32;
 
     public CodeBinary EntryCode => _entryCode;
     public List<string> AllImports => _allImports;
     public Library SelfLibrary => _selfLibrary;
+    
+    public int MemorySize
+    {
+        get => _memorySize;
+        set => _memorySize = value;
+    }
 
     private Executable()
     {
@@ -36,6 +43,7 @@ public sealed class Executable
 
         _selfLibrary.Write(writer);
         _entryCode.Write(writer);
+        writer.Write(_memorySize);
     }
 
     public static Executable Load(string filename)
@@ -53,6 +61,7 @@ public sealed class Executable
 
         e._selfLibrary = Library.Load(filename, reader);
         e._entryCode.Read(reader);
+        e._memorySize = reader.ReadInt32();
 
         return e;
     }

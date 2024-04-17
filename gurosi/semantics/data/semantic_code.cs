@@ -11,6 +11,7 @@ public sealed class SemanticCode
     private string _moduleName;
     private List<Function> _globalFunctions;
     private List<ClassModel> _classes;
+    private int _memSize;
 
     public string FileName
     {
@@ -53,6 +54,14 @@ public sealed class SemanticCode
         get => _classes;
         init => _classes = value;
     }
+
+    internal int MemSize
+    {
+        get => _memSize;
+        set => _memSize = value;
+    }
+
+    internal bool MemSizeSpecified => _memSize != -1;
 
     public void _PrintDebug()
     {

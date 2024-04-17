@@ -11,6 +11,7 @@ public sealed class Parser {
     private string _moduleName = "undefined";
     private FunctionIndexer _globalIndexer;
     private GenericList _currentGenericContext;
+    private int _memsize;
 
     public Semantic Parse(string filename, Lexical lexical)
     {
@@ -24,6 +25,7 @@ public sealed class Parser {
         _classes = new List<ClassModel>();
         _globalIndexer = new FunctionIndexer();
         _currentGenericContext = new GenericList();
+        _memsize = -1;
 
         ApplyMacros();
 
@@ -81,6 +83,16 @@ public sealed class Parser {
                 }
             }
 
+            if (token.Type == TokenType.Memsize)
+            {
+                _reader.Retr();
+                int size = ParseMemsize();
+                if (size != -1)
+                {
+                    _memsize = int.Max(_memsize, size);
+                }
+            }
+
             if (token.Type == TokenType.How)
             {
                 _reader.Retr();
@@ -110,14 +122,16 @@ public sealed class Parser {
 
         Error.AttachFileName(filename, _errors);
 
-        return new Semantic(_errors, new SemanticCode() {
+        return new Semantic(_errors, new SemanticCode()
+        {
             FileName = filename,
             RunBlock = _runBlock,
             ModuleName = _moduleName,
             Imports = _imports,
             Shortens = _shortens.Distinct().ToList(),
             GlobalFunctions = _globalFunctions,
-            Classes = _classes
+            Classes = _classes,
+            MemSize = _memsize != -1 ? _memsize : 1024
         });
     }
 
@@ -936,6 +950,27 @@ public sealed class Parser {
         _reader.Read(); // ';'
 
         return nameToken.Value;
+    }
+
+    private int ParseMemsize()
+    {
+        _reader.Read(); // 'memsize'
+
+        if (EnsureNext(TokenType.IntLiteral))
+        {
+            return -1;
+        }
+
+        Token valueToken = _reader.Read();
+        int actualValue = int.Parse(valueToken.Value);
+
+        if (actualValue < 32)
+        {
+            AddError(ErrorProvider.Parser.InvalidMemorySize(actualValue), valueToken);
+            return -1;
+        }
+
+        return actualValue;
     }
 
     private TypeData ParseType()

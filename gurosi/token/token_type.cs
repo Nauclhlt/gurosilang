@@ -41,6 +41,7 @@ public enum TokenType {
     NvCall,
     NvRetv,
     Self,  // the self keyword.
+    Memsize, // Used to specify the size of the runtime memory.
 
     Plus,
     Minus,
