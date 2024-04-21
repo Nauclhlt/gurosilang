@@ -54,28 +54,7 @@ public sealed class Builder
         {
             SemanticCode c = _codes[i];
 
-            RuntimeEnv runtime = new RuntimeEnv()
-            {
-                ModuleName = c.ModuleName
-            };
-           
-            for (int j = 0; j < c.Imports.Count; j++)
-            {
-                Library import = ImportLib(c.Imports[j]);
-                
-                // add dependencies
-
-                if (import is not null)
-                {
-                    runtime.Types.AddRange(import.Classes.Select(x => x.Path));
-                    runtime.Classes.AddRange(import.Classes);
-                    runtime.Functions.AddRange(import.Functions);
-                }
-            }
-
-            runtime.Shortens.AddRange(c.Shortens);
-
-            LoadSelfContained(runtime, _codes);
+            RuntimeEnv runtime = CreateRuntimeFor(_codes, i);
 
             if (c.RunBlock is not null)
             {
@@ -103,6 +82,8 @@ public sealed class Builder
         Library lib = new Library();
 
         Compiler compiler = new Compiler();
+
+        RuntimeEnv[] runtimeCache = new RuntimeEnv[_codes.Length];
 
         for (int i = 0; i < _codes.Length; i++)
         {
@@ -140,31 +121,30 @@ public sealed class Builder
 
             LoadSelfContained(runtime, _codes);
 
+            runtimeCache[i] = runtime;
             
 
             // Build process start.
 
-            for (int j = 0; j < c.Classes.Count; j++)
-            {
-                //lib.Classes.Add(ClassBinary.FromModel(c.Classes[j], runtime));
-                CompileResult result  = compiler.CompileClass(c.Classes[j], runtime);
-                if (!result.HasError)
-                {
-                    lib.Classes.Add(result.Class);
-                }
-                else
-                {
-                    Error.AttachFileName(c.FileName, result.Errors);
+            //for (int j = 0; j < c.Classes.Count; j++)
+            //{
+            //    //lib.Classes.Add(ClassBinary.FromModel(c.Classes[j], runtime));
+            //    CompileResult result  = compiler.CompileClass(c.Classes[j], runtime);
+            //    if (!result.HasError)
+            //    {
+            //        lib.Classes.Add(result.Class);
+            //    }
+            //    else
+            //    {
+            //        Error.AttachFileName(c.FileName, result.Errors);
 
-                    errors.AddRange(result.Errors);
-                }
-            }
+            //        errors.AddRange(result.Errors);
+            //    }
+            //}
 
             for (int j = 0; j < c.GlobalFunctions.Count; j++)
             {
                 CompileResult result = compiler.CompileFunction(c.GlobalFunctions[j], runtime);
-
-                
 
                 if (!result.HasError)
                 {
@@ -179,10 +159,105 @@ public sealed class Builder
             }
         }
 
+        HashSet<string> compiled = new HashSet<string>();
+        List<(ClassModel, int)> allClasses = new List<(ClassModel, int)>();
+        for (int i = 0; i < _codes.Length; i++)
+        {
+            allClasses.AddRange(_codes[i].Classes.Select(x => (x, i)));
+        }
+
+        void compileClass(ClassModel model, int codeIndex)
+        {
+            RuntimeEnv runtime = runtimeCache[codeIndex];
+
+            if (model.BaseType is not null)
+            {
+                ClassModel target = null;
+                int index = -1;
+                TypePath type = runtime.Interpolate(TypePath.FromModel(model.BaseType));
+
+                for (int i = 0; i < allClasses.Count; i++)
+                {
+                    TypePath tp = runtime.Interpolate(new TypePath(allClasses[i].Item1.Module, allClasses[i].Item1.Name));
+                    if (type.CompareEquality(tp))
+                    {
+                        target = allClasses[i].Item1;
+                        index = allClasses[i].Item2;
+                        break;
+                    }
+                }
+
+                if (target is not null)
+                    compileClass(target, index);
+            }
+
+            TypePath path = new TypePath(model.Module, model.Name);
+            if (compiled.Contains(path.ToString()))
+                return;
+
+            CompileResult result = compiler.CompileClass(model, runtime);
+
+            if (!result.HasError)
+            {
+                lib.Classes.Add(result.Class);
+            }
+            else
+            {
+                Error.AttachFileName(_codes[codeIndex].FileName, result.Errors);
+
+                errors.AddRange(result.Errors);
+            }
+
+            //Console.WriteLine(path.ToString());
+            compiled.Add(path.ToString());
+
+            for (int i = 0; i < runtimeCache.Length; i++)
+            {
+                runtimeCache[i].ReplacePrototype(result.Class);
+            }
+        }
+
+        for (int i = 0; i < _codes.Length; i++)
+        {
+            for (int j = 0; j < _codes[i].Classes.Count; j++)
+            {
+                compileClass(_codes[i].Classes[j], i);
+            }
+        }
+
         if (errors.Count > 0)
             return null;
 
         return lib;
+    }
+
+    private RuntimeEnv CreateRuntimeFor(SemanticCode[] codes, int index)
+    {
+        SemanticCode c = codes[index];
+        RuntimeEnv runtime = new RuntimeEnv()
+        {
+            ModuleName = c.ModuleName
+        };
+
+        for (int j = 0; j < c.Imports.Count; j++)
+        {
+            Library import = ImportLib(c.Imports[j]);
+
+            // add dependencies
+
+            if (import is not null)
+            {
+                runtime.Types.AddRange(import.Classes.Select(x => x.Path));
+                runtime.Classes.AddRange(import.Classes);
+                runtime.Functions.AddRange(import.Functions);
+            }
+        }
+
+        runtime.Shortens.AddRange(c.Shortens);
+
+        LoadSelfContained(runtime, _codes);
+
+        return runtime;
     }
 
     private void LoadSelfContained(RuntimeEnv runtime, SemanticCode[] codes)

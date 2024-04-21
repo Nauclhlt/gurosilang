@@ -69,10 +69,7 @@ public sealed partial class RuntimeEnv
         for (int i = 0; i < _classes.Count; i++)
         {
             string name = _classes[i].Path.ModuleName;
-            if (!modules.Contains(name))
-            {
-                modules.Add(name);
-            }
+            modules.Add(name);
         }
 
         return modules.ToList();
@@ -116,7 +113,7 @@ public sealed partial class RuntimeEnv
                 continue;
             if (func.Arguments.Count != calling.Arguments.Count)
                 continue;
-            if (!func.Name.Replace(name, string.Empty).StartsWith('~'))
+            if (!func.Name.TildeEquals(name))
             {
                 continue;
             }
@@ -147,7 +144,7 @@ public sealed partial class RuntimeEnv
             if (func.IsExtendR)
                 continue;
             if (func.Module != moduleName ||
-                !func.Name.Replace(name, string.Empty).StartsWith('~'))
+                !func.Name.TildeEquals(name))
             {
                 continue;
             }
@@ -168,7 +165,7 @@ public sealed partial class RuntimeEnv
                 func.IsExtendR)
                 continue;
             if (func.Module != moduleName ||
-                !func.Name.Replace(name, string.Empty).StartsWith('~'))
+                !func.Name.TildeEquals(name))
             {
                 continue;
             }
@@ -206,16 +203,6 @@ public sealed partial class RuntimeEnv
         }
 
         return null;
-    }
-
-    public TypePath GetWithGeneric(TypePath sourceType, TypePath type)
-    {
-        if (type.IsGenericParam && sourceType.Generics.Count > 0)
-        {
-            return sourceType.Generics[type.GenericParamIndex];
-        }
-
-        return type;
     }
 
     public TypePath Interpolate(TypePath path)
@@ -308,5 +295,16 @@ public sealed partial class RuntimeEnv
         }
 
         return false;
+    }
+
+    public void ReplacePrototype(ClassBinary cls)
+    {
+        for (int i = 0; i < _classes.Count; i++)
+        {
+            if (cls.Path.CompareEquality(_classes[i].Path))
+            {
+                _classes[i] = cls;
+            }
+        }
     }
 }

@@ -11,12 +11,14 @@ public enum TokenType {
     For, // FOR
     While, // WHILE
     How,  // Used to define a function.
+    Impl, // Used to define a abstract function.
     Class,  // Used to define a class.
     Field,  // Used to define a field inside structures or classes.
     Public,  // The public access identifier.
     Private,  // The private access identifier.
     Moduled,  // The moduled access identifier.
-    Static,  // The static access identifier.
+    Abstract,  // The abstract identifier.
+    Static,  // The static identifier.
     String,  // The string type.
     Int, // The int type.
     Float, // The float type.

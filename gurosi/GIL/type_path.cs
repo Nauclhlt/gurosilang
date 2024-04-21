@@ -139,6 +139,16 @@ public sealed class TypePath {
         return new TypePath(_route, _name);
     }
 
+    public TypePath ApplyGenerics(TypePath source)
+    {
+        if (!IsGenericParam)
+            return this;
+        if (source.Generics.Count == 0)
+            return this;
+
+        return source.Generics[GenericParamIndex];
+    }
+
     public bool NotNull()
     {
         return !CompareEquality(UNKNOWN);

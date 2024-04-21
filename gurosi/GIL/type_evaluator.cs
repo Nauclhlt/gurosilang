@@ -259,7 +259,7 @@ public static class TypeEvaluator
             else
             {
                 
-                return runtime.GetWithGeneric(type, function.ReturnType);
+                return function.ReturnType.ApplyGenerics(type);
             }
                 
         }
@@ -303,7 +303,7 @@ public static class TypeEvaluator
                     if (cls.GenericCount == 0)
                         return cls.GetField(dot.Right).Type;
                     else
-                        return runtime.GetWithGeneric(sourceType, cls.GetField(dot.Right).Type);
+                        return cls.GetField(dot.Right).Type.ApplyGenerics(sourceType);
                 }
                 else
                 {
@@ -319,7 +319,7 @@ public static class TypeEvaluator
                     if (cls.GenericCount == 0)
                         return cls.GetStcField(dot.Right).Type;
                     else
-                        return runtime.GetWithGeneric(pureType, cls.GetStcField(dot.Right).Type);
+                        return cls.GetStcField(dot.Right).Type.ApplyGenerics(pureType);
                 }
                 else
                 {

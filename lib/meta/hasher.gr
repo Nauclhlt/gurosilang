@@ -1,0 +1,9 @@
+module meta;
+shorten meta;
+shorten std;
+shorten collections;
+
+class Hasher: public, abstract
+{
+    impl int generate(): public;
+}

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Gurosi;
 
 public sealed class Executable

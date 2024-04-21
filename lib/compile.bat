@@ -1,0 +1,1 @@
+"C:\workspace\CSharp\VsProjects\gurosilang\gurosic\bin\Debug\net8.0\gurosic.exe" lib -t "C:\workspace\CSharp\VsProjects\gurosilang\lib" -o "C:\workspace\CSharp\VsProjects\gurosilang\lib\core.grsl" --recurse

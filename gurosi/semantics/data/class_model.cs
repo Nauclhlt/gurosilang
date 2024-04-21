@@ -8,8 +8,16 @@ public sealed class ClassModel {
     private List<FieldModel> _stcFields;
     private List<MethodModel> _methods;
     private List<MethodModel> _stcMethods;
+    private List<ImplModel> _absImpls;
     private int _genericCount = 0;
     private TypeData _baseType;
+    private Token _token;
+
+    public Token Token
+    {
+        get => _token;
+        init => _token = value;
+    }
 
     public string Module
     {
@@ -45,6 +53,12 @@ public sealed class ClassModel {
     {
         get => _stcMethods;
         init => _stcMethods = value;
+    }
+
+    public List<ImplModel> AbsImpls
+    {
+        get => _absImpls;
+        set => _absImpls = value;
     }
 
     public List<AccessIdentifier> Identifiers

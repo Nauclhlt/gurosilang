@@ -10,6 +10,7 @@ public sealed partial class ClassBinary : IBinary
     private List<FieldBinary> _stcFields;
     private List<FunctionBinary> _functions;
     private List<FunctionBinary> _stcFunctions;
+    private List<ImplBinary> _absImpls;
     private int _genericCount;
     private TypePath _baseType;
     private bool _isPrototype;
@@ -47,6 +48,12 @@ public sealed partial class ClassBinary : IBinary
         set => _stcFunctions = value;
     }
 
+    public List<ImplBinary> AbsImpls
+    {
+        get => _absImpls;
+        set => _absImpls = value;
+    }
+
     public int GenericCount
     {
         get => _genericCount;
@@ -71,6 +78,7 @@ public sealed partial class ClassBinary : IBinary
         _functions = new List<FunctionBinary>();
         _stcFields = new List<FieldBinary>();
         _stcFunctions = new List<FunctionBinary>();
+        _absImpls = new List<ImplBinary>();
         _genericCount = 0;
     }
 
@@ -78,7 +86,7 @@ public sealed partial class ClassBinary : IBinary
     {
         for (int i = 0; i < _functions.Count; i++)
         {
-            if (_functions[i].Name.Replace(name, string.Empty).StartsWith('~'))
+            if (_functions[i].Name.TildeEquals(name))
                 return true;
         }
 
@@ -89,7 +97,7 @@ public sealed partial class ClassBinary : IBinary
     {
         for (int i = 0; i < _stcFunctions.Count; i++)
         {
-            if (_stcFunctions[i].Name.Replace(name, string.Empty).StartsWith('~'))
+            if (_stcFunctions[i].Name.TildeEquals(name))
                 return true;
         }
 
@@ -104,7 +112,7 @@ public sealed partial class ClassBinary : IBinary
             
             if (func.Arguments.Count != calling.Arguments.Count)
                 continue;
-            if (!func.Name.Replace(name, string.Empty).StartsWith('~'))
+            if (!func.Name.TildeEquals(name))
             {
                 continue;
             }
@@ -149,6 +157,8 @@ public sealed partial class ClassBinary : IBinary
                 return _stcFunctions[i];
         }
 
+        
+
         return null;
     }
 
@@ -161,7 +171,7 @@ public sealed partial class ClassBinary : IBinary
             
             if (func.Arguments.Count != calling.Arguments.Count)
                 continue;
-            if (!func.Name.Replace(name, string.Empty).StartsWith('~'))
+            if (!func.Name.TildeEquals(name))
             {
                 continue;
             }
@@ -170,7 +180,7 @@ public sealed partial class ClassBinary : IBinary
             for (int k = 0; k < func.Arguments.Count; k++)
             {
                 TypePath argType = func.Arguments[k].Type;
-                argType = c.Runtime.GetWithGeneric(type, argType);
+                argType = argType.ApplyGenerics(type);
                 TypePath callType = TypeEvaluator.Evaluate(calling.Arguments[k], c.Runtime, c);
                 if (!callType.IsCompatibleWith(argType, c.Runtime))
                 {
@@ -298,6 +308,14 @@ public sealed partial class ClassBinary : IBinary
             _stcFunctions[i].Read(reader);
         }
 
+        _absImpls = new List<ImplBinary>();
+        int absc = reader.ReadInt32();
+        for (int i = 0; i < absc; i++)
+        {
+            _absImpls.Add(new ImplBinary());
+            _absImpls[i].Read(reader);
+        }
+
         _genericCount = reader.ReadInt32();
         if (reader.ReadBoolean())
         {
@@ -340,6 +358,12 @@ public sealed partial class ClassBinary : IBinary
             _stcFunctions[i].Write(writer);
         }
 
+        writer.Write(_absImpls.Count);
+        for (int i = 0; i < _absImpls.Count; i++)
+        {
+            _absImpls[i].Write(writer);
+        }
+
         writer.Write(_genericCount);
         writer.Write(HasBaseType);
         if (HasBaseType)
@@ -356,6 +380,9 @@ public sealed partial class ClassBinary : IBinary
         cb._isPrototype = true;
         cb._prototypeSource = model;
         cb._functions = model.Methods.Select(x => FunctionBinary.CreatePrototype(x, runtime)).ToList();
+
+        cb._functions.AddRange(model.AbsImpls.Select(x => FunctionBinary.CreateDummy(x, runtime)));
+
         cb._stcFunctions = model.StcMethods.Select(x => FunctionBinary.CreatePrototype(x, runtime)).ToList();
         cb._genericCount = model.GenericCount;
 

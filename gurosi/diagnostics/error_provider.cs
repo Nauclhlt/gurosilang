@@ -5,7 +5,7 @@ public static class ErrorProvider
     public static class Parser
     {
         public static string InvalidToken(string received, string expected)
-            => $"[E001] Invalid token '{received}', expected '{expected}'.";
+            => $"[E001] Unexpected token '{received}', expected '{expected}'.";
         public static string InvalidType()
             =>  "[E002] Invalid type.";
         public static string InvalidExpressionToken(string tokenValue)
@@ -40,6 +40,10 @@ public static class ErrorProvider
             => $"[E017] Cannot retrieve the pointer for the specified value.";
         public static string InvalidMemorySize(int value)
             => $"[E018] '{value}' cannot be used as the memory size. Memory size needs to be a number not less than 32.";
+        public static string FieldNameDuplicate(string name)
+            => $"[E019] Cannot define multiple fields named '{name}'.";
+        public static string MethodDuplicate(string name)
+            => $"[E020] A method with same parameters, named '{name}' is already defined.";
     }
 
     public static string InvalidType(TypePath type)
@@ -116,6 +120,12 @@ public static class ErrorProvider
         => $"[C036] Cannot rewrite the value of constant.";
     public static string InvalidErrorType()
         => $"[C037] Error codes and error messages need to be string.";
+    public static string AbstractClassInstantiation(string symbolName)
+        => $"[C038] Cannot create an instance of the abstract type '{symbolName}'.";
+    public static string NotImplemented(ImplBinary impl)
+        => $"[C039] Abstract impl '{impl.Name}' not implemented.";
+    public static string InvalidInheritanceGenericCount()
+        => $"[C040] A extended class needs to have same number of generics as the base class.";
 
     private static string ToOrdinal(this int self)
     {

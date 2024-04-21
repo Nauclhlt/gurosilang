@@ -59,9 +59,34 @@ public sealed class TypeData {
             return _builtIn.ToString();
         else if (_kind == TypeKind.Symbol)
             return _symbol._PrintDebug();
-        else
+        else if (_kind == TypeKind.Generic)
+            return "<" + _genericParamIndex.ToString() + ">";
+        else if (_kind == TypeKind.ArrayBase)
+            return "ArrayBase";
+        else if (_kind == TypeKind.Array)
         {
             return $"Array<{_arrayType.ToString()}>";
         }
+
+        return string.Empty;
+    }
+
+    public bool CompareEquality(TypeData other)
+    {
+        if (other.Kind != _kind)
+            return false;
+
+        if (_kind == TypeKind.Symbol)
+            return _symbol == other.Symbol;
+        else if (_kind == TypeKind.BuiltIn)
+            return _builtIn == other.BuiltIn;
+        else if (_kind == TypeKind.Generic)
+            return _genericParamIndex == other.GenericParamIndex;
+        else if (_kind == TypeKind.ArrayBase)
+            return true;
+        else if (_kind == TypeKind.Array)
+            return _arrayType.CompareEquality(other.ArrayType);
+
+        return false;
     }
 }

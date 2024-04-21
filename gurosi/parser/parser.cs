@@ -115,7 +115,8 @@ public sealed class Parser {
             _errors.Add(new Error(ErrorProvider.Parser.ModuleNameMissing(), default));
         }
 
-        if (_moduleName == "sys")
+        if (_moduleName == "sys" || _moduleName == "gen"
+            || _moduleName == "arr")
         {
             _errors.Add(new Error(ErrorProvider.Parser.ModuleNameNotAvailable(_moduleName), default));
         }
@@ -531,6 +532,75 @@ public sealed class Parser {
         return new MethodModel(nameToken.Value, returnType, args, body, identifiers, nameToken);
     }
 
+    private ImplModel ParseImpl()
+    {
+        _reader.Read(); // 'impl'
+
+        TypeData returnType = ParseType();
+        if (returnType is null)
+            return null;
+
+        if (EnsureNext(TokenType.Ident))
+            return null;
+
+        Token nameToken = _reader.Read();
+
+        if (EnsureNext(TokenType.OpenParen))
+            return null;
+
+        _reader.Read(); // '('
+
+        // read arguments section
+        List<DefArgument> args = new List<DefArgument>();
+        
+        while (!_reader.EOF && (_reader.MatchNext(TokenType.Ident) || _reader.MatchNext(TokenType.Comma)))
+        {
+            if (_reader.MatchNext(TokenType.Ident))
+            {
+                Token argNameToken = _reader.Read();
+                if (EnsureNext(TokenType.Colon))
+                    return null;
+                _reader.Read(); // ':'
+                TypeData argType = ParseType();
+                if (argType is null)
+                    return null;
+
+                args.Add(new DefArgument(argNameToken.Value, argType, argNameToken));
+            }
+            else if (_reader.MatchNext(TokenType.Comma))
+            {
+                _reader.Read(); // ','
+            }
+        }
+
+        if (EnsureNext(TokenType.CloseParen))
+            return null;
+
+        _reader.Read(); // ')'
+
+        List<AccessIdentifier> identifiers;
+
+        if (EnsureNext(TokenType.OpenBrace, TokenType.Colon))
+            return null;
+
+        if (_reader.MatchNext(TokenType.OpenBrace))
+        {
+            // without identifiers (private)
+            identifiers = new List<AccessIdentifier>() { AccessIdentifier.Private };
+        }
+        else
+        {
+            // with identifiers
+            _reader.Read(); // ':'
+            identifiers = ParseAccessIdentifiers();
+        }
+
+        if (EnsureNext(TokenType.Semicolon))
+            return null;
+
+        return new ImplModel(nameToken.Value, returnType, args, identifiers, nameToken);
+    }
+
     private MethodModel ParseConstructor()
     {
         Token token = _reader.Read(); // 'init'
@@ -599,7 +669,7 @@ public sealed class Parser {
 
     private ClassModel ParseClass()
     {
-        _reader.Read(); // 'class'
+        Token headerToken = _reader.Read(); // 'class'
         FunctionIndexer findexer = new FunctionIndexer();
 
         if (EnsureNext(TokenType.Ident))
@@ -656,6 +726,7 @@ public sealed class Parser {
         List<FieldModel> stcFields = new List<FieldModel>();
         List<MethodModel> methods = new List<MethodModel>();
         List<MethodModel> stcMethods = new List<MethodModel>();
+        List<ImplModel> absImpls = new List<ImplModel>();
 
         while (!_reader.EOF)
         {
@@ -668,16 +739,18 @@ public sealed class Parser {
             {
                 _reader.Retr();
                 FieldModel field = ParseField();
-                if (field is null)
-                    continue;
-                if (field.Identifiers.Contains(AccessIdentifier.Static))
+                if (field is not null)
                 {
-                    stcFields.Add(field);
-                }
-                else
-                {
-                    fields.Add(field);
-                }
+                    GuardFieldDuplicate(fields, field, token);
+                    if (field.Identifiers.Contains(AccessIdentifier.Static))
+                    {
+                        stcFields.Add(field);
+                    }
+                    else
+                    {
+                        fields.Add(field);
+                    }
+                }    
             }
             else if (token.Type == TokenType.How)
             {
@@ -685,6 +758,7 @@ public sealed class Parser {
                 MethodModel method = ParseMethod();
                 if (method is not null)
                 {
+                    GuardMethodDuplicate(methods, method, token);
                     method.Name += "~" + findexer.GetIndex(method.Name);
                     if (method.AccessIdentifiers.Contains(AccessIdentifier.Static))
                     {
@@ -696,6 +770,17 @@ public sealed class Parser {
                     }
                 }
             }
+            else if (token.Type == TokenType.Impl)
+            {
+                _reader.Retr();
+                ImplModel impl = ParseImpl();
+                if (impl is not null)
+                {
+                    GuardImplDuplicate(absImpls, impl, token);
+                    impl.Name += "~" + findexer.GetIndex(impl.Name);
+                    absImpls.Add(impl);
+                }
+            }
             else if (token.Type == TokenType.Init)
             {
                 // parse constructor
@@ -705,6 +790,7 @@ public sealed class Parser {
                 constructor.Name += "~" + findexer.GetIndex(constructor.Name);
                 if (constructor is not null)
                 {
+                    GuardMethodDuplicate(methods, constructor, token);
                     if (!constructor.AccessIdentifiers.Contains(AccessIdentifier.Static))
                     {
                         methods.Add(constructor);
@@ -729,9 +815,46 @@ public sealed class Parser {
             Methods = methods,
             StcFields = stcFields,
             StcMethods = stcMethods,
+            AbsImpls = absImpls,
             GenericCount = genericContext is null ? 0 : genericContext.Count,
-            BaseType = baseType
+            BaseType = baseType,
+            Token = headerToken
         };
+    }
+
+    private void GuardFieldDuplicate(List<FieldModel> fields, FieldModel model, Token token)
+    {
+        for (int i = 0; i < fields.Count; i++)
+        {
+            if (fields[i].Name == model.Name)
+            {
+                AddError(ErrorProvider.Parser.FieldNameDuplicate(model.Name), token);
+            }
+        }
+    }
+
+    private void GuardMethodDuplicate(List<MethodModel> methods, MethodModel model, Token token)
+    {
+        for (int i = 0; i < methods.Count; i++)
+        {
+            if (methods[i].Name.TildeEquals(model.Name) &&
+                CompileUtil.ArgumentEquals(methods[i].Parameters, model.Parameters))
+            {
+                AddError(ErrorProvider.Parser.MethodDuplicate(model.Name), token);
+            }
+        }
+    }
+
+    private void GuardImplDuplicate(List<ImplModel> impls, ImplModel model, Token token)
+    {
+        for (int i = 0; i < impls.Count; i++)
+        {
+            if (impls[i].Name.TildeEquals(model.Name) &&
+                CompileUtil.ArgumentEquals(impls[i].Parameters, model.Parameters))
+            {
+                AddError(ErrorProvider.Parser.MethodDuplicate(model.Name), token);
+            }
+        }
     }
 
     private StatementBlock ParseStatementBlock(bool allowOneLiner = false, bool inloop = false, bool root = false)
@@ -1096,7 +1219,8 @@ public sealed class Parser {
         while (_reader.MatchNext(TokenType.Public) ||
                 _reader.MatchNext(TokenType.Private) ||
                 _reader.MatchNext(TokenType.Moduled) ||
-                _reader.MatchNext(TokenType.Static))
+                _reader.MatchNext(TokenType.Static) ||
+                _reader.MatchNext(TokenType.Abstract))
         {
             Token token = _reader.Read();
 
@@ -1108,6 +1232,8 @@ public sealed class Parser {
                 buffer.Add(AccessIdentifier.Moduled);
             else if (token.Type == TokenType.Static)
                 buffer.Add(AccessIdentifier.Static);
+            else if (token.Type == TokenType.Abstract)
+                buffer.Add(AccessIdentifier.Abstract);
 
             if (_reader.MatchNext(TokenType.Comma))
             {

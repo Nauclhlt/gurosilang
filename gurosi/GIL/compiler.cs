@@ -94,8 +94,6 @@ public sealed class Compiler
         if (model.BaseType is not null)
             cb.BaseType = runtime.Interpolate(TypePath.FromModel(model.BaseType));
 
-        
-
         cb.Path = new TypePath(model.Module, model.Name);
         cb.Identifiers = model.Identifiers.ToList();
         cb.Fields = model.Fields.Select(x =>
@@ -115,11 +113,16 @@ public sealed class Compiler
             // add base class fields
             if (!runtime.IsClass(cb.BaseType))
             {
-                errors.Add(new Error(ErrorProvider.InvalidInheritance(cb.BaseType), default));
+                errors.Add(new Error(ErrorProvider.InvalidInheritance(cb.BaseType), model.Token.Point));
             }
             else
             {
                 ClassBinary sourceClass = runtime.GetClass(cb.BaseType);
+
+                if (sourceClass.GenericCount != model.GenericCount)
+                {
+                    errors.Add(new Error(ErrorProvider.InvalidInheritanceGenericCount(), model.Token.Point));
+                }
 
                 cb.Fields.AddRange(sourceClass.Fields);
             }
@@ -169,74 +172,12 @@ public sealed class Compiler
             return fb;
         }).ToList();
 
-        // extend type
-        if (cb.BaseType is not null)
-        {
-            ClassBinary ext = runtime.GetClass(cb.BaseType);
-            ClassModel extModel = ext.PrototypeSource;
-
-            cb.Functions.AddRange(extModel.Methods.Where(a => !a.Name.StartsWith("ctor~")).Select(x =>
-            {
-                FunctionBinary fb = new FunctionBinary();
-                fb.Module = model.Module;
-                fb.Name = x.Name;
-                fb.ReturnType = runtime.Interpolate(TypePath.FromModel(x.ReturnType));
-
-                if (fb.ReturnsValueR && !runtime.TypeExists(fb.ReturnType))
-                {
-                    errors.Add(new Error(ErrorProvider.InvalidType(fb.ReturnType), x.Token.Point));
-                }
-
-                fb.Identifiers = x.AccessIdentifiers.ToList();
-                fb.Arguments = x.Parameters.Select(x =>
-                {
-                    TypePath type = runtime.Interpolate(TypePath.FromModel(x.Type));
-
-                    if (!runtime.TypeExists(type))
-                    {
-                        errors.Add(new Error(ErrorProvider.InvalidType(type), x.Token.Point));
-                    }
-
-                    return ArgumentBinary.FromModel(x, runtime);
-                }).ToList();
-
-                CompileResult m = CompileMethodCode(x.Body, runtime, fb, ClassBinary.CreatePrototype(model, runtime));
-                errors.AddRange(m.Errors);
-                fb.Body = new CodeBinary(m.Code);
-                
-                return fb;
-            }));
-
-            cb.Fields.AddRange(cb.Fields);
-        }
-
-
-
-        if (model.BaseType is not null)
-        {
-            // add base class fields
-            if (!runtime.IsClass(cb.BaseType))
-            {
-                errors.Add(new Error(ErrorProvider.InvalidInheritance(cb.BaseType), default));
-            }
-            else
-            {
-                ClassBinary sourceClass = runtime.GetClass(cb.BaseType);
-
-                // add functions;
-                for (int i = 0; i < sourceClass.Functions.Count; i++)
-                {
-                    cb.Functions.Add(sourceClass.Functions[i]);
-                }
-            }
-        }
-
         cb.StcFunctions = model.StcMethods.Select(x =>
         {
             FunctionBinary fb = new FunctionBinary();
             fb.Name = x.Name;
             fb.Module = model.Module;
-            
+
             fb.ReturnType = runtime.Interpolate(TypePath.FromModel(x.ReturnType));
 
             if (fb.ReturnsValueR && !runtime.TypeExists(fb.ReturnType))
@@ -260,13 +201,92 @@ public sealed class Compiler
             CompileResult m = CompileMethodCode(x.Body, runtime, fb, cb, isStatic: true);
             errors.AddRange(m.Errors);
             fb.Body = new CodeBinary(m.Code);
-            
+
             return fb;
         }).ToList();
 
-        cb.GenericCount = model.GenericCount;
+        cb.AbsImpls = model.AbsImpls.Select(x => ImplBinary.FromModel(x, cb, runtime)).ToList();
 
-        
+        if (model.BaseType is not null)
+        {
+            // add base class fields
+            if (!runtime.IsClass(cb.BaseType))
+            {
+                errors.Add(new Error(ErrorProvider.InvalidInheritance(cb.BaseType), model.Token.Point));
+            }
+            else
+            {
+                ClassBinary sourceClass = runtime.GetClass(cb.BaseType);
+
+                // add functions;
+                for (int i = 0; i < sourceClass.Functions.Count; i++)
+                {
+                    if (!sourceClass.Functions[i].Name.StartsWith("ctor"))
+                        cb.Functions.Add(sourceClass.Functions[i]);
+                }
+
+                // check abstract implementation
+                if (sourceClass.Identifiers.Contains(AccessIdentifier.Abstract))
+                {
+                    for (int i = 0; i < sourceClass.AbsImpls.Count; i++)
+                    {
+                        ImplBinary impl = sourceClass.AbsImpls[i];
+
+                        int tildeIndex = -1;
+                        FunctionBinary current = null;
+                        for (int k = 0; k < cb.Functions.Count; k++)
+                        {
+                            FunctionBinary func = cb.Functions[k];
+
+                            if (!func.Name.TildeEquals(impl.Name))
+                                continue;
+
+                            if (!CompileUtil.ArgumentEquals(func.Arguments, impl.Arguments))
+                                continue;
+
+                            if (!func.ReturnType.CompareEquality(impl.ReturnType))
+                                continue;
+
+                            if (!CompileUtil.IdentifiersEquals(func.Identifiers, impl.Identifiers))
+                                continue;
+
+                            tildeIndex = func.Name.GetTilde();
+                            current = func;
+                            break;
+                        }
+
+                        if (tildeIndex == -1)
+                        {
+                            errors.Add(new Error(ErrorProvider.NotImplemented(impl), model.Token.Point));
+                        }
+                        else
+                        {
+                            // Tune index
+                            int target = impl.Name.GetTilde();
+                            if (tildeIndex != target)
+                            {
+                                // Find target
+                                FunctionBinary targetFunc = null;
+
+                                for (int k = 0; k < cb.Functions.Count; k++)
+                                {
+                                    if (cb.Functions[k].Name.GetTilde() == target)
+                                    {
+                                        targetFunc = cb.Functions[k];
+                                        break;
+                                    }
+                                }
+
+                                targetFunc.Name = targetFunc.Name.RemoveTilde() + "~" + tildeIndex;
+                                current.Name = current.Name.RemoveTilde() + "~" + target;
+                            }
+                        }
+                    }
+                }
+            }
+        }        
+
+        cb.GenericCount = model.GenericCount;
 
         return new CompileResult(cb, errors);
     }
@@ -562,7 +582,9 @@ public sealed class Compiler
                 // return value not required, but passed.
                 env.Errors.Add(new Error(ErrorProvider.ReturnValueNotRequired(), ret.ValueToken.Point));
             }
-            if (ret.Value is not null && c.ScopeFunction.ReturnsValueR && !TypeEvaluator.Evaluate(ret.Value, c.Runtime, c).IsCompatibleWith(c.ScopeFunction.ReturnType, c.Runtime))
+            TypePath type = TypeEvaluator.Evaluate(ret.Value, c.Runtime, c);
+            //Console.WriteLine(type);
+            if (ret.Value is not null && c.ScopeFunction.ReturnsValueR && !type.IsCompatibleWith(c.ScopeFunction.ReturnType, c.Runtime))
             {
                 env.Errors.Add(new Error(ErrorProvider.ReturnTypeMismatch(c.ScopeFunction.ReturnType), ret.ValueToken.Point));
             }
@@ -770,6 +792,8 @@ public sealed class Compiler
             {
                 CompileExpression(env, c, dot.Source);
                 ClassBinary cls = c.Runtime.GetClass(sourceType);
+                
+
                 if (cls.HasField(dot.Right))
                 {
                     FieldBinary field = cls.GetField(dot.Right);
@@ -778,7 +802,7 @@ public sealed class Compiler
                         env.Errors.Add(new Error(ErrorProvider.NotAccessible(field.Name), dot.Token.Point));
                     }
 
-                    bool validType = valueType.IsCompatibleWith(field.Type, c.Runtime, false);
+                    bool validType = valueType.IsCompatibleWith(field.Type.ApplyGenerics(sourceType), c.Runtime, false);
 
                     if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, field.Type)))
                     {
@@ -1390,6 +1414,7 @@ public sealed class Compiler
         else if (expression is NewExpression ne)
         {
             TypePath targetType = c.Runtime.Interpolate(TypePath.FromModel(ne.Type));
+
             if (c.Runtime.TypeExists(targetType) &&
                 c.Runtime.IsClass(targetType))
             {
@@ -1398,6 +1423,11 @@ public sealed class Compiler
                 if (!c.IsClassAccessible(cls))
                 {
                     env.Errors.Add(new Error(ErrorProvider.NotAccessible(cls.Path.ToString()), ne.Token.Point));
+                }
+
+                if (cls.Identifiers.Contains(AccessIdentifier.Abstract))
+                {
+                    env.Errors.Add(new Error(ErrorProvider.AbstractClassInstantiation(cls.Path.ToString()), ne.Token.Point));
                 }
 
                 if (cls.HasFunction("ctor"))
@@ -1455,7 +1485,7 @@ public sealed class Compiler
             if (cb is not null && cb.GenericCount > 0 &&
                 type.Generics.Count > 0)
             {
-                argType = c.Runtime.GetWithGeneric(type, argType);
+                argType = argType.ApplyGenerics(type);
             }
 
             bool validType = true;

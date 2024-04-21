@@ -31,6 +31,7 @@ public static class TokenData {
         { "public", TokenType.Public },
         { "private", TokenType.Private },
         { "moduled", TokenType.Moduled },
+        { "abstract", TokenType.Abstract },
         { "static", TokenType.Static },
         { "array", TokenType.Array },
         { "alloc", TokenType.Alloc },
@@ -47,7 +48,8 @@ public static class TokenData {
         { "null", TokenType.Null },
         { "as", TokenType.As },
         { "funcptr", TokenType.FuncPtr },
-        { "memsize", TokenType.Memsize }
+        { "memsize", TokenType.Memsize },
+        { "impl", TokenType.Impl }
     };
 
     private static readonly HashSet<char> IdentChars = new()

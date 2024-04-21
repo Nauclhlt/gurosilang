@@ -1,4 +1,4 @@
-mine "C:/workspace/CSharp/GitProjects/gr/core.grsl";
+mine "C:/workspace/CSharp/VsProjects/gurosilang/lib/core.grsl";
 
 module Hangman;
 shorten Hangman;
@@ -6,33 +6,10 @@ shorten std;
 shorten collections;
 
 memsize 1920;
- 
+
+macro PI 3.14f;
 
 run
 {
-    fizzbuzz(32);
-}
-
-
-how void fizzbuzz(end: int)
-{
-    for i, 1 to end + 1
-    {
-        if i % 3 == 0 && i % 5 == 0
-        {
-            Log.println("FizzBuzz");
-        }
-        else if i % 3 == 0
-        {
-            Log.println("Fizz");
-        }
-        else if i % 5 == 0
-        {
-            Log.println("Buzz");
-        }
-        else
-        {
-            Log.println(str(i));
-        }
-    }
+    
 }
