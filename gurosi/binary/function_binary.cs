@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace Gurosi;
 
 public sealed class FunctionBinary : IBinary
@@ -93,8 +95,8 @@ public sealed class FunctionBinary : IBinary
         }
 
         _body = new CodeBinary();
-        
-        _body.Read(reader);
+        if (reader.ReadBoolean())
+            _body.Read(reader);
     }
 
     public void Write(BinaryWriter writer)
@@ -118,7 +120,10 @@ public sealed class FunctionBinary : IBinary
             _extendType.Write(writer);
             writer.Write(_extendName);
         }
-        _body.Write(writer);
+
+        writer.Write(_body is not null);
+        if (_body is not null)
+            _body.Write(writer);
     }
 
     public static FunctionBinary CreatePrototype(MethodModel model, RuntimeEnv runtime)
@@ -128,6 +133,18 @@ public sealed class FunctionBinary : IBinary
         fb._arguments = model.Parameters.Select(x => ArgumentBinary.FromModel(x, runtime)).ToList();
         fb._name = model.Name;
         fb._returnType = runtime.Interpolate(TypePath.FromModel(model.ReturnType));
+        return fb;
+    }
+
+    public static FunctionBinary CreateDummy(ImplBinary impl, ClassBinary cls, RuntimeEnv runtime)
+    {
+        FunctionBinary fb = new FunctionBinary();
+        fb._module = cls.Path.ModuleName;
+        fb._identifiers = impl.Identifiers.ToList();
+        fb._arguments = impl.Arguments.ToList();
+        fb._name = impl.Name;
+        fb._returnType = impl.ReturnType;
+
         return fb;
     }
 

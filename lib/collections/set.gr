@@ -1,0 +1,183 @@
+module collections;
+
+shorten collections;
+shorten std;
+shorten meta;
+
+macro BUCKETS_SIZE 4096;
+
+class __SetEntry<T>: moduled
+{
+    field private _next: __SetEntry<<T>>;
+    field private _value: <T>;
+    
+    init (value: <T>): moduled
+    {
+        _value = value;
+        _next = null;
+    }
+
+    how boolean hasNext(): public
+    {
+        return _next != null;
+    }
+
+    how __SetEntry<<T>> next(): public
+    {
+        return _next;
+    }
+
+    how <T> value(): public
+    {
+        return _value;
+    }
+
+    how void chain(next: __SetEntry<<T>>): public
+    {
+        _next = next;
+    }
+}
+
+class Set<T>: public
+{
+    field private _buckets: array< __SetEntry<<T>> >;
+    field private _bucketsSize: int;
+    field private _hasher: Hasher;
+    
+    init (hasher: Hasher): public
+    {
+        _bucketsSize = BUCKETS_SIZE;
+        _buckets = alloc __SetEntry<<T>>[_bucketsSize];
+        _hasher = hasher;
+    }
+
+    init (hasher: Hasher, bucketsSize: int): public
+    {
+        _bucketsSize = bucketsSize;
+        _buckets = alloc __SetEntry<<T>>[_bucketsSize];
+        _hasher = hasher;
+    }
+
+    how void add(item: <T>): public
+    {
+        let bucketIndex: int = bucketIndexOf(item);
+
+        let entry: __SetEntry<<T>> = new __SetEntry<<T>>(item);
+        
+        if _buckets[bucketIndex] == null
+        {
+            _buckets[bucketIndex] = entry;
+        }
+        else
+        {
+            let last: __SetEntry<<T>> = _buckets[bucketIndex];
+
+            while true
+            {
+                if last.hasNext()
+                {
+                    last = last.next();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            last.chain(entry);
+        }
+    }
+
+    how boolean remove(item: <T>): public
+    {
+        let bucketIndex: int = bucketIndexOf(item);
+
+        if _buckets[bucketIndex] == null
+        {
+            return false;
+        }
+
+        let previous: __SetEntry<<T>> = null;
+        let last: __SetEntry<<T>> = _buckets[bucketIndex];
+
+        while true
+        {
+            if last.value() == item
+            {
+                # Found the item to be removed.
+                if last.hasNext()
+                {
+                    if previous == null
+                    {
+                        _buckets[bucketIndex] = last.next();
+                    }
+                    else
+                    {
+                        previous.chain(last.next());
+                    }
+                }
+                else
+                {
+                    if previous == null
+                    {
+                        _buckets[bucketIndex] = null;
+                    }
+                    else
+                    {
+                        previous.chain(null);
+                    }
+                }
+
+                return true;
+            }
+
+            if last.hasNext()
+            {
+                previous = last;
+                last = last.next();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    how boolean contains(item: <T>): public
+    {
+        let bucketIndex: int = bucketIndexOf(item);
+
+        if _buckets[bucketIndex] == null
+        {
+            return false;
+        }
+
+        let last: __SetEntry<<T>> = _buckets[bucketIndex];
+
+        while true
+        {
+            if last.value() == item
+            {
+                return true;
+            }
+
+            if last.hasNext()
+            {
+                last = last.next();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    how int bucketIndexOf(item: <T>): private 
+    {
+        return _hasher.generate(item) % _bucketsSize;
+    }
+}

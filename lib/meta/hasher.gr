@@ -5,5 +5,5 @@ shorten collections;
 
 class Hasher: public, abstract
 {
-    impl int generate(): public;
+    impl int generate(target: any): public;
 }

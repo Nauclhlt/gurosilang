@@ -35,6 +35,10 @@ public static class NVC
                     {
                         RunMetaFuncptr(symbol, runtime);
                     }
+                    else if (cls == "hash")
+                    {
+                        RunMetaHash(symbol, runtime);
+                    }
 
                     break;
                 }
@@ -318,6 +322,30 @@ public static class NVC
                     runtime.MainStack.Pop();
                 }
             }
+        }
+    }
+
+    private static readonly int[] HashFactors = [17, 5, 13, 11, 11, 7, 13, 17, 3, 18, 7, 2, 9, 6];
+    private static void RunMetaHash(string symbol, ProgramRuntime runtime)
+    {
+        if (symbol == "str")
+        {
+            StringValueObject target = (StringValueObject)runtime.MainStack.Pop();
+
+            string s = target.Value;
+            int hash = 1991;
+            unsafe
+            {
+                fixed (char* ptr = s)
+                {
+                    for (int i = 0; i < s.Length; i++)
+                    {
+                        hash += s[i] * HashFactors[i % HashFactors.Length];
+                    }
+                }
+            }
+
+            _returnValue = new IntValueObject(hash);
         }
     }
 

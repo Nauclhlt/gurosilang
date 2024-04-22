@@ -322,6 +322,10 @@ public static class CalcUtil
 
             return IValueObject.NullRef;
         }
+        else if (left is RefValueObject && right is RefValueObject)
+        {
+            return new BooleanValueObject(left.HeapPointer == right.HeapPointer);
+        }
 
         return IValueObject.NullRef;
     }
@@ -445,6 +449,22 @@ public static class CalcUtil
             return IValueObject.NullRef;
 
         return new DoubleValueObject(value.GetNumericValue<int>());
+    }
+
+    public static IValueObject PrCastFI(IValueObject value, ProgramRuntime runtime)
+    {
+        if (!value.Type.CompareEquality(TypePath.FLOAT))
+            return IValueObject.NullRef;
+
+        return new IntValueObject((int)value.GetNumericValue<float>());
+    }
+
+    public static IValueObject PrCastDI(IValueObject value, ProgramRuntime runtime)
+    {
+        if (!value.Type.CompareEquality(TypePath.DOUBLE))
+            return IValueObject.NullRef;
+
+        return new IntValueObject((int)value.GetNumericValue<double>());
     }
 
     public static bool IsPositive(IValueObject value, ProgramRuntime runtime)

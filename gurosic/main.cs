@@ -80,6 +80,8 @@ void BuildLibrary(LibraryBuildOptions options)
         Println(targets.Length + " target(s) found.", ConsoleColor.Cyan);
     }
 
+    Console.WriteLine();
+
     for (int i = 0; i < targets.Length; i++)
     {
         Tokenizer lexer = new Tokenizer(File.ReadAllText(targets[i]));
@@ -172,6 +174,8 @@ void BuildExecutable(ExeBuildOptions options)
     {
         Println(targets.Length + " target(s) found.", ConsoleColor.Cyan);
     }
+
+    Console.WriteLine();
 
     for (int i = 0; i < targets.Length; i++)
     {

@@ -461,7 +461,7 @@ public sealed class Parser {
 
     private MethodModel ParseMethod()
     {
-        _reader.Read(); // 'how'
+        Token headerToken = _reader.Read(); // 'how'
 
         TypeData returnType = ParseType();
         if (returnType is null)
@@ -521,6 +521,8 @@ public sealed class Parser {
             _reader.Read(); // ':'
             identifiers = ParseAccessIdentifiers();
         }
+
+        ValidateMethodIdentifiers(identifiers, headerToken);
 
         if (EnsureNext(TokenType.OpenBrace))
             return null;
@@ -534,7 +536,7 @@ public sealed class Parser {
 
     private ImplModel ParseImpl()
     {
-        _reader.Read(); // 'impl'
+        Token headerToken = _reader.Read(); // 'impl'
 
         TypeData returnType = ParseType();
         if (returnType is null)
@@ -594,6 +596,8 @@ public sealed class Parser {
             _reader.Read(); // ':'
             identifiers = ParseAccessIdentifiers();
         }
+
+        ValidateMethodIdentifiers(identifiers, headerToken);
 
         if (EnsureNext(TokenType.Semicolon))
             return null;
@@ -657,6 +661,8 @@ public sealed class Parser {
             identifiers = ParseAccessIdentifiers();
         }
 
+        ValidateConstructorIdentifiers(identifiers, token);
+
         if (EnsureNext(TokenType.OpenBrace))
             return null;
 
@@ -702,6 +708,8 @@ public sealed class Parser {
             // without explicit identifiers (public)
             identifiers = new List<AccessIdentifier>() { AccessIdentifier.Public };
         }
+
+        ValidateClassIdentifiers(identifiers, headerToken);
 
         TypeData baseType = null;
 
@@ -853,6 +861,45 @@ public sealed class Parser {
                 CompileUtil.ArgumentEquals(impls[i].Parameters, model.Parameters))
             {
                 AddError(ErrorProvider.Parser.MethodDuplicate(model.Name), token);
+            }
+        }
+    }
+
+    private void ValidateMethodIdentifiers(List<AccessIdentifier> identifiers, Token token)
+    {
+        for (int i = 0; i < identifiers.Count; i++)
+        {
+            if (identifiers[i] == AccessIdentifier.Abstract ||
+                identifiers[i] == AccessIdentifier.Final)
+            {
+                AddError(ErrorProvider.Parser.InvalidAccessIdentifier(identifiers[i]), token);
+                return;
+            }
+        }
+    }
+
+    private void ValidateConstructorIdentifiers(List<AccessIdentifier> identifiers, Token token)
+    {
+        for (int i = 0; i < identifiers.Count; i++)
+        {
+            if (identifiers[i] == AccessIdentifier.Abstract ||
+                identifiers[i] == AccessIdentifier.Final ||
+                identifiers[i] == AccessIdentifier.Static)
+            {
+                AddError(ErrorProvider.Parser.InvalidAccessIdentifier(identifiers[i]), token);
+                return;
+            }
+        }
+    }
+
+    private void ValidateClassIdentifiers(List<AccessIdentifier> identifiers, Token token)
+    {
+        for (int i = 0; i < identifiers.Count; i++)
+        {
+            if (identifiers[i] == AccessIdentifier.Static)
+            {
+                AddError(ErrorProvider.Parser.InvalidAccessIdentifier(identifiers[i]), token);
+                return;
             }
         }
     }
@@ -1714,7 +1761,8 @@ public sealed class Parser {
             _reader.Read();
 
             if (_reader.MatchNext(TokenType.Float) ||
-                _reader.MatchNext(TokenType.Double))
+                _reader.MatchNext(TokenType.Double) ||
+                _reader.MatchNext(TokenType.Int))
             {
                 Token token = _reader.GetCurrent();
                 TypeData type = ParseType();

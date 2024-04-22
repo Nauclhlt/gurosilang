@@ -1,0 +1,59 @@
+module meta;
+shorten meta;
+shorten std;
+shorten collections;
+
+class IntHasher: public <- Hasher
+{
+    how int generate(target: any): public
+    {
+        let value: int = target as int;
+        return value;
+    }
+}
+
+class BooleanHasher: public <- Hasher
+{
+    how int generate(target: any): public
+    {
+        let value: boolean = target as boolean;
+        if value
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+class FloatHasher: public <- Hasher
+{
+    how int generate(target: any): public
+    {
+        let value: float = target as float;
+        return (int)value;
+    }
+}
+
+class DoubleHasher: public <- Hasher
+{
+    how int generate(target: any): public
+    {
+        let value: double = target as double;
+
+        return (int)value;
+    }
+}
+
+class StringHasher: public <- Hasher
+{
+    how int generate(target: any): public
+    {
+        let value: string = target as string;
+        
+        nvcall "meta" "hash" "str" (value);
+        return nvretv int;
+    }
+}

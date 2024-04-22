@@ -407,19 +407,4 @@ public sealed partial class ClassBinary : IBinary
             }
         }
     }
-
-    public void _PrintDebug()
-    {
-        // print debug info.
-
-        Console.WriteLine("type: " + _path.ToString());
-        Console.WriteLine("fields:");
-        for (int i = 0; i < _fields.Count; i++)
-        {
-            Console.WriteLine("name: " + _fields[i].Name);
-            Console.WriteLine("type: " + _fields[i].Type.ToString());
-            Console.WriteLine("idfr: " + string.Join(' ', _fields[i].Identifiers.Select(x => x.ToString())));
-        }
-
-    }
 }

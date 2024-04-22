@@ -42,25 +42,27 @@ file class TypeMapComparer : IEqualityComparer<(TypePath, TypePath, Operator)>
 
 public static class TypeEvaluator
 {
-    public static HashSet<TypePath> Decrementable = new HashSet<TypePath>()
+    public static readonly HashSet<TypePath> Decrementable = new HashSet<TypePath>()
     {
         TypePath.INT, TypePath.FLOAT, TypePath.DOUBLE
     };
-    public static HashSet<TypePath> Incrementable = new HashSet<TypePath>()
+    public static readonly HashSet<TypePath> Incrementable = new HashSet<TypePath>()
     {
         TypePath.INT, TypePath.FLOAT, TypePath.DOUBLE
     };
 
-    public static Dictionary<(TypePath, TypePath), string> CastMap = new Dictionary<(TypePath, TypePath), string>(
+    public static readonly Dictionary<(TypePath, TypePath), string> CastMap = new Dictionary<(TypePath, TypePath), string>(
         new DoubleTypeComparer()
     )
     {
         { (TypePath.INT, TypePath.FLOAT), "cstif" },
         { (TypePath.INT, TypePath.DOUBLE), "cstid" },
-        { (TypePath.FLOAT, TypePath.DOUBLE), "cstfd" }
+        { (TypePath.FLOAT, TypePath.DOUBLE), "cstfd" },
+        { (TypePath.FLOAT, TypePath.INT), "cstfi" },
+        { (TypePath.DOUBLE, TypePath.INT), "cstdi" }
     };
 
-    public static HashSet<(TypePath, TypePath)> ImplicitCastMap = new HashSet<(TypePath, TypePath)>(
+    public static readonly HashSet<(TypePath, TypePath)> ImplicitCastMap = new HashSet<(TypePath, TypePath)>(
         new DoubleTypeComparer()
     )
     {
@@ -69,7 +71,7 @@ public static class TypeEvaluator
         (TypePath.INT, TypePath.DOUBLE)
     };
 
-    public static Dictionary<(TypePath, TypePath, Operator), TypePath> TypeMap = new Dictionary<(TypePath, TypePath, Operator), TypePath>(
+    public static readonly Dictionary<(TypePath, TypePath, Operator), TypePath> TypeMap = new Dictionary<(TypePath, TypePath, Operator), TypePath>(
         new TypeMapComparer()
     )
     {
@@ -420,7 +422,7 @@ public static class TypeEvaluator
 
     public static (FunctionBinary, ClassBinary, TypePath, Expression) FindFunctionWithClassPathSource(FuncExpression funcExpr, RuntimeEnv runtime, CompileContext c)
     {
-        // expr is supposed to be DotExpression.
+        
         Expression expr = funcExpr.Function;
         if (expr is DotExpression dot)
         {

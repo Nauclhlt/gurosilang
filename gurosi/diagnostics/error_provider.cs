@@ -44,6 +44,8 @@ public static class ErrorProvider
             => $"[E019] Cannot define multiple fields named '{name}'.";
         public static string MethodDuplicate(string name)
             => $"[E020] A method with same parameters, named '{name}' is already defined.";
+        public static string InvalidAccessIdentifier(AccessIdentifier identifier)
+            => $"[E021] Access identifier '{identifier.ToString().ToLower()}' cannot be used here.";
     }
 
     public static string InvalidType(TypePath type)
@@ -123,10 +125,10 @@ public static class ErrorProvider
     public static string AbstractClassInstantiation(string symbolName)
         => $"[C038] Cannot create an instance of the abstract type '{symbolName}'.";
     public static string NotImplemented(ImplBinary impl)
-        => $"[C039] Abstract impl '{impl.Name}' not implemented.";
+        => $"[C039] Abstract impl '{impl.Name.RemoveTilde()}' not implemented.";
     public static string InvalidInheritanceGenericCount()
         => $"[C040] A extended class needs to have same number of generics as the base class.";
-
+    
     private static string ToOrdinal(this int self)
     {
         const string First = "1st";

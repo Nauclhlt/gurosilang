@@ -5,5 +5,6 @@ public enum AccessIdentifier {
     Static,
     Private,
     Moduled,
-    Abstract
+    Abstract,
+    Final
 }

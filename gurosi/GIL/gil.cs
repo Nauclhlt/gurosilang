@@ -134,6 +134,8 @@ public static class GIL
         { "cstobj", new[] {OperandType.String} },
         // スタック上の関数のポインタを取得し、スタックに積む。
         { "fptr", null },
+        { "cstfi", null },
+        { "cstdi", null }
     };
 
     public const byte PUSH = 0;
@@ -202,6 +204,8 @@ public static class GIL
     public const byte SELF = 63;
     public const byte CONT = 64;
     public const byte BRK = 65;
+    public const byte CSTFI = 66;
+    public const byte CSTDI = 67;
 
     // 順番を変えると動かない。
     public static string[] CodeMap = new string[]{
@@ -270,7 +274,9 @@ public static class GIL
         "tfjmp",
         "self",
         "cont",
-        "brk"
+        "brk",
+        "cstfi",
+        "cstdi"
     };
 
     public static int CountInstructions(List<string> code, int start, int length)

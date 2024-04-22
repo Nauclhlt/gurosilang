@@ -288,6 +288,12 @@ public sealed class Compiler
 
         cb.GenericCount = model.GenericCount;
 
+        if (cb.Identifiers.Contains(AccessIdentifier.Abstract))
+        {
+            // abstract class
+            cb.Functions.AddRange(cb.AbsImpls.Select(x => FunctionBinary.CreateDummy(x, cb, runtime)));
+        }
+
         return new CompileResult(cb, errors);
     }
 

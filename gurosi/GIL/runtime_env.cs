@@ -210,6 +210,13 @@ public sealed partial class RuntimeEnv
         if (path is null)
             return null;
 
+        if (path.IsArray)
+        {
+            TypePath arrayType = path.GetArrayType();
+            arrayType = Interpolate(arrayType);
+            return arrayType.CloneAsArray();
+        }
+
         if (path.Route.Length == 0 || path.ModuleName == string.Empty)
         {
             // need to interpolate.
@@ -219,7 +226,8 @@ public sealed partial class RuntimeEnv
             for (int i = 0; i < modules.Count; i++)
             {
                 TypePath candidate = new TypePath(modules[i], path.Name);
-                if (_types.Any(x => x.CompareEquality(candidate)))
+                if (_types.Any(x => x.ModuleName == candidate.ModuleName &&
+                x.Name == candidate.Name))
                 {
                     if (!lastValid.CompareEquality(path))
                     {

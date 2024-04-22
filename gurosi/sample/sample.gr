@@ -4,12 +4,37 @@ module Hangman;
 shorten Hangman;
 shorten std;
 shorten collections;
+shorten meta;
 
 memsize 1920;
 
-macro PI 3.14f;
-
 run
 {
-    
+    let set: Set<string> = new Set<string>(new StringHasher());
+
+    set.add("Hello");
+    set.add("Hello world");
+    set.add("sample");
+
+    debug(set.contains("Hello"));
+    debug(set.contains("Hello world"));
+    debug(set.contains("sample"));
+    debug(set.contains("icecream"));
+    debug(set.contains("chocolate"));
+
+    Log.println("");
+
+    set.remove("Hello world");
+    set.remove("sample");
+
+    debug(set.contains("Hello"));
+    debug(set.contains("Hello world"));
+    debug(set.contains("sample"));
+    debug(set.contains("icecream"));
+    debug(set.contains("chocolate"));
+}
+
+how void debug(value: boolean)
+{
+    Log.println(str(value));
 }

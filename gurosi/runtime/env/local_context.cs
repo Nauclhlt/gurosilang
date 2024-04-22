@@ -941,6 +941,20 @@ public sealed class LocalContext
                     _mainStack.Push(CalcUtil.PrCastFD(target, _runtime));
                     break;
                 }
+            case GIL.CSTFI:
+                {
+                    IValueObject target = _mainStack.Pop();
+
+                    _mainStack.Push(CalcUtil.PrCastFI(target, _runtime));
+                    break;
+                }
+            case GIL.CSTDI:
+                {
+                    IValueObject target = _mainStack.Pop();
+
+                    _mainStack.Push(CalcUtil.PrCastDI(target, _runtime));
+                    break;
+                }
             case GIL.INC:
                 {
                     // ÉCÉìÉNÉäÉÅÉìÉg

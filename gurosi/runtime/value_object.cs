@@ -17,7 +17,7 @@ public interface IValueObject
 
     public string Str();
 
-    public static readonly int Nullptr = 0;
+    public static readonly int Nullptr = -1;
     public static readonly IValueObject NullRef = new RefValueObject(TypePath.NULL, Nullptr);
     public static readonly IValueObject NullVal = new HeapValueObject(TypePath.NULL);
 
