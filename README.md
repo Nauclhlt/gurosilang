@@ -8,4 +8,4 @@ A simple scripting language with static typing and OOP.
 .NET 8.0 Runtime
 
 ## Temp Download
-[Download](https://drive.google.com/file/d/1g7hqG7T8gvWs1XXbEJJ0_m0XO8pGWMHD/view?usp=sharing)
+[Download](https://drive.google.com/file/d/1zVp-FwCw65H_rFX5vbHNjmiBfFKgdEja/view?usp=sharing)
