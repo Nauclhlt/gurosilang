@@ -238,7 +238,32 @@ public sealed class TypePath {
         if (_name != t.Name)
             return false;
 
-        return _route.SequenceEqual(t.Route);
+        if (this.Generics?.Count > 0)
+        {
+            if (!_route.SequenceEqual(t.Route))
+            {
+                return false;
+            }
+            
+            if (Generics.Count != t.Generics?.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < Generics.Count; i++)
+            {
+                if (!Generics[i].CompareEquality(t.Generics[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        else
+        {
+            return _route.SequenceEqual(t.Route);
+        }
     }
 
     public bool IsCompatibleWith(TypePath t, RuntimeEnv runtime, bool casting = true)

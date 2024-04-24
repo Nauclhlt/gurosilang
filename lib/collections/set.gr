@@ -74,6 +74,11 @@ class Set<T>: public
 
             while true
             {
+                if last.value() == item
+                {
+                    err StdRes.existingElement() "The specified item is already present in the set.";
+                }
+
                 if last.hasNext()
                 {
                     last = last.next();

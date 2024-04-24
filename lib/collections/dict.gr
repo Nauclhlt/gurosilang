@@ -1,0 +1,268 @@
+module collections;
+
+shorten std;
+shorten collections;
+shorten meta;
+
+macro BUCKETS_SIZE 4096;
+macro ENTRY __DictEntry< <TKey>, <TValue> >;
+macro ERR_EX err StdRes.existingElement() "The specified item is already present in the set.";
+macro ERR_NF err StdRes.keyNotFound() "The specified key is not present in the dict.";
+
+class __DictEntry<TKey, TValue>: moduled
+{
+    field private _next: __DictEntry< <TKey>, <TValue> >;
+    field private _key: <TKey>;
+    field private _value: <TValue>;
+
+    init (key: <TKey>, value: <TValue>): moduled
+    {
+        _key = key;
+        _value = value;
+        _next = null;
+    }
+
+    how boolean hasNext(): public
+    {
+        return _next != null;
+    }
+
+    how __DictEntry< <TKey>, <TValue> > next(): public
+    {
+        return _next;
+    }
+
+    how void chain(next: __DictEntry< <TKey>, <TValue> >): public
+    {
+        _next = next;
+    }
+
+    how <TKey> key(): public
+    {
+        return _key;
+    }
+
+    how <TValue> value(): public
+    {
+        return _value;
+    }
+
+    how void setValue(value: <TValue>): public
+    {
+        _value = value;
+    }
+}
+
+class Dict<TKey, TValue>: public
+{
+    field private _buckets: array<ENTRY>;
+    field private _bucketsSize: int;
+    field private _hasher: Hasher;
+
+    init (keyHasher: Hasher): public
+    {
+        _hasher = keyHasher;
+        _bucketsSize = BUCKETS_SIZE;
+        _buckets = alloc ENTRY[_bucketsSize];
+    }
+
+    init (keyHasher: Hasher, bucketsSize: int): public
+    {
+        _hasher = keyHasher;
+        _bucketsSize = bucketsSize;
+        _buckets = alloc ENTRY[_bucketsSize];
+    }
+
+    how void add(key: <TKey>, value: <TValue>): public
+    {
+        let bucketIndex: int = bucketIndexOf(key);
+
+        let entry: ENTRY = new ENTRY(key, value);
+
+        if _buckets[bucketIndex] == null
+        {
+            _buckets[bucketIndex] = entry;
+        }
+        else
+        {
+            let last: ENTRY = _buckets[bucketIndex];
+
+            while true
+            {
+                if last.key() == key
+                {
+                    ERR_EX;
+                }
+
+                if last.hasNext()
+                {
+                    last = last.next();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            last.chain(entry);
+        }
+    }
+
+    how void set(key: <TKey>, value: <TValue>): public
+    {
+        let bucketIndex: int = bucketIndexOf(key);
+
+        if _buckets[bucketIndex] == null
+        {
+            ERR_NF;
+        }
+        else
+        {
+            let last: ENTRY = _buckets[bucketIndex];
+
+            while true
+            {
+                if last.key() == key
+                {
+                    last.setValue(value);
+                    return;
+                }
+
+                if last.hasNext()
+                {
+                    last = last.next();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            ERR_NF;
+        }
+    }
+
+    how <TValue> get(key: <TKey>): public
+    {
+        let bucketIndex: int = bucketIndexOf(key);
+
+        if _buckets[bucketIndex] == null
+        {
+            ERR_NF;
+        }
+
+        let last: ENTRY = _buckets[bucketIndex];
+
+        while true
+        {
+            if last.key() == key
+            {
+                return last.value();
+            }
+
+            if last.hasNext()
+            {
+                last = last.next();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        ERR_NF;
+    }
+
+    how boolean containsKey(key: <TKey>): public
+    {
+        let bucketIndex: int = bucketIndexOf(key);
+
+        if _buckets[bucketIndex] == null
+        {
+            return false;
+        }
+
+        let last: ENTRY = _buckets[bucketIndex];
+
+        while true
+        {
+            if last.key() == key
+            {
+                return true;
+            }
+
+            if last.hasNext()
+            {
+                last = last.next();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    how boolean remove(key: <TKey>): public
+    {
+        let bucketIndex: int = bucketIndexOf(key);
+
+        if _buckets[bucketIndex] == null
+        {
+            return false;
+        }
+
+        let previous: ENTRY = null;
+        let last: ENTRY = _buckets[bucketIndex];
+
+        while true
+        {
+            if last.key() == key
+            {
+                # Found the item to be removed.
+                if last.hasNext()
+                {
+                    if previous == null
+                    {
+                        _buckets[bucketIndex] = last.next();
+                    }
+                    else
+                    {
+                        previous.chain(last.next());
+                    }
+                }
+                else
+                {
+                    if previous == null
+                    {
+                        _buckets[bucketIndex] = null;
+                    }
+                    else
+                    {
+                        previous.chain(null);
+                    }
+                }
+
+                return true;
+            }
+
+            if last.hasNext()
+            {
+                previous = last;
+                last = last.next();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    how int bucketIndexOf(item: <TKey>): private 
+    {
+        return _hasher.generate(item) % _bucketsSize;
+    }
+}

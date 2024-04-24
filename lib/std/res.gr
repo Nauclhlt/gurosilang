@@ -17,4 +17,14 @@ class StdRes: public
     {
         return "InvalidOperation";
     }
+    
+    how string existingElement(): public, static
+    {
+        return "ExistingElement";
+    }
+
+    how string keyNotFound(): public, static
+    {
+        return "KeyNotFound";
+    }
 }

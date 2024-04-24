@@ -371,6 +371,7 @@ public sealed class Compiler
             {
                 // value type check:
                 TypePath valueType = TypeEvaluator.Evaluate(ls.Value, c.Runtime, c);
+                
                 bool validType = valueType.IsCompatibleWith(type, c.Runtime, false);
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, type)))
                 {

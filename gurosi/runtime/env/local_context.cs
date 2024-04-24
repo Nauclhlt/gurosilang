@@ -719,7 +719,7 @@ public sealed class LocalContext
                     // string‚Å‚ ‚é‚±‚Æ‚ª•ÛØ‚³‚ê‚Ä‚¢‚éB
                     StringValueObject message = (StringValueObject)_mainStack.Pop();
                     StringValueObject code = (StringValueObject)_mainStack.Pop();
-
+                    
                     _runtime.RaiseRuntimeError(new RuntimeError(code.Value, message.Value));
 
                     break;
