@@ -22,6 +22,11 @@ public sealed class SlicedMemory
         _rtMemory.Alloc(address + _start);
     }
 
+    public bool IsAllocated(int address)
+    {
+        return _start <= address && address < _start + _length;
+    }
+
     public void Write(int address, IValueObject value)
     {
         _rtMemory.Write(address + _start, value);

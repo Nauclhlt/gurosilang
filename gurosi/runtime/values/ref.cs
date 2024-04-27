@@ -38,6 +38,20 @@ public sealed class RefValueObject : IValueObject
         return (T)Refer(heap);
     }
 
+    public void AddRefCount(RuntimeHeap heap)
+    {
+        if (_pointer == IValueObject.Nullptr)
+            return;
+        heap.AddReference(_pointer);
+    }
+
+    public void ReleaseRefCount(RuntimeHeap heap)
+    {
+        if (_pointer == IValueObject.Nullptr)
+            return;
+        heap.ReleaseReference(_pointer);
+    }
+
     public string Str()
     {
         return $"PTR={_pointer}";

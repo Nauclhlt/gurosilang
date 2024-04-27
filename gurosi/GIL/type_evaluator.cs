@@ -289,9 +289,33 @@ public static class TypeEvaluator
         {
             TypePath arrType = Evaluate(idx.Target, runtime, c);
             if (!arrType.IsArray)
-                return TypePath.UNKNOWN;
+            {
+                if (runtime.IsClass(arrType))
+                {
+                    ClassBinary cls = runtime.GetClass(arrType);
 
-            return arrType.GetArrayType();
+                    if (cls.HasFunction("__get_idx"))
+                    {
+                        FunctionBinary getter = cls.MatchFunction("__get_idx", new FuncExpression(null, [idx.Index]), c, arrType); ;
+                        if (getter is not null)
+                        {
+                            return getter.ReturnType.ApplyGenerics(arrType);
+                        }
+                        else
+                        {
+                            return TypePath.UNKNOWN;
+                        }
+                    }
+                    else
+                    {
+                        return TypePath.UNKNOWN;
+                    }
+                }
+            }
+            else
+            {
+                return arrType.GetArrayType();
+            }
         }
         else if (expr is DotExpression dot)
         {
@@ -335,7 +359,7 @@ public static class TypeEvaluator
         }
         else if (expr is DummyExpression dummy)
         {
-            return runtime.Interpolate(TypePath.FromModel(dummy.Type));
+            return runtime.Interpolate(dummy.Type);
         }
 
         return TypePath.UNKNOWN;

@@ -73,6 +73,25 @@ class Dict<TKey, TValue>: public
         _buckets = alloc ENTRY[_bucketsSize];
     }
 
+    @indexer_get
+    how <TValue> G(key: <TKey>): public
+    {
+        return self.get(key);
+    }
+
+    @indexer_set
+    how void S(key: <TKey>, value: <TValue>): public
+    {
+        if self.containsKey(key)
+        {
+            self.set(key, value);
+        }
+        else
+        {
+            self.add(key, value);
+        }
+    }
+
     how void add(key: <TKey>, value: <TValue>): public
     {
         let bucketIndex: int = bucketIndexOf(key);

@@ -12,6 +12,7 @@ public sealed class FunctionBinary : IBinary
     private TypePath _extendType;
     private string _extendName;
     private CodeBinary _body;
+    private AttributeModel _attributes;
 
     public string Module
     {
@@ -53,6 +54,11 @@ public sealed class FunctionBinary : IBinary
     {
         get => _body;
         set => _body = value;
+    }
+    public AttributeModel Attributes
+    {
+        get => _attributes;
+        set => _attributes = value;
     }
 
     public bool ReturnsValueR => !_returnType.CompareEquality(TypePath.NULL);
@@ -97,6 +103,8 @@ public sealed class FunctionBinary : IBinary
         _body = new CodeBinary();
         if (reader.ReadBoolean())
             _body.Read(reader);
+
+        _attributes = (AttributeModel)reader.ReadInt32();
     }
 
     public void Write(BinaryWriter writer)
@@ -124,6 +132,8 @@ public sealed class FunctionBinary : IBinary
         writer.Write(_body is not null);
         if (_body is not null)
             _body.Write(writer);
+
+        writer.Write((int)_attributes);
     }
 
     public static FunctionBinary CreatePrototype(MethodModel model, RuntimeEnv runtime)
@@ -133,6 +143,7 @@ public sealed class FunctionBinary : IBinary
         fb._arguments = model.Parameters.Select(x => ArgumentBinary.FromModel(x, runtime)).ToList();
         fb._name = model.Name;
         fb._returnType = runtime.Interpolate(TypePath.FromModel(model.ReturnType));
+        fb._attributes = model.Attributes;
         return fb;
     }
 
@@ -144,6 +155,7 @@ public sealed class FunctionBinary : IBinary
         fb._arguments = impl.Arguments.ToList();
         fb._name = impl.Name;
         fb._returnType = impl.ReturnType;
+        fb._attributes = 0;
 
         return fb;
     }

@@ -6,12 +6,18 @@ public sealed class FieldModel {
     private Expression _initialValue;
     private TypeData _type;
     private Token _token;
+    private AttributeModel _attributes;
 
     public string Name => _name;
     public List<AccessIdentifier> Identifiers => _identifiers;
     public Expression InitialValue => _initialValue;
     public TypeData Type => _type;
     public Token Token => _token;
+    public AttributeModel Attributes
+    {
+        get => _attributes;
+        set => _attributes = value;
+    }
 
     public FieldModel(string name, List<AccessIdentifier> identifiers, TypeData type, Token token)
     {

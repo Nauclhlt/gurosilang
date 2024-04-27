@@ -39,19 +39,19 @@ public sealed class ProgramRuntime
     {
         _callStack.Push(new LocalContext(this, _memory.Slice(), CompiledCode.CompileFromBinary(method.Body),
             cls, method, self));
-        args.ExtractOnMemory(_callStack.Peek().Memory);
+        args.ExtractOnMemory(_callStack.Peek().Memory, _heap);
     }
 
     public void CallStaticMethod(ClassBinary cls, FunctionBinary method, ArgumentList args)
     {
         _callStack.Push(new LocalContext(this, _memory.Slice(), CompiledCode.CompileFromBinary(method.Body), cls, method));
-        args.ExtractOnMemory(_callStack.Peek().Memory);
+        args.ExtractOnMemory(_callStack.Peek().Memory, _heap);
     }
 
     public void CallFunction(FunctionBinary func, ArgumentList args)
     {
         _callStack.Push(new LocalContext(this, _memory.Slice(), CompiledCode.CompileFromBinary(func.Body), func));
-        args.ExtractOnMemory(_callStack.Peek().Memory);
+        args.ExtractOnMemory(_callStack.Peek().Memory, _heap);
     }
 
     public void RaiseRuntimeError(RuntimeError error)
@@ -87,7 +87,7 @@ public sealed class ProgramRuntime
         }
 
         _loadedSymbols = SymbolStore.FromLibraries(refs);
-        //
+        
 
 
 
@@ -110,9 +110,21 @@ public sealed class ProgramRuntime
                 {
                     LocalContext last = _callStack.Pop();
                     
+                    for (int i = 0; i < last.Memory.Length; i++)
+                    {
+                        if (last.Memory.Read(i) is RefValueObject r)
+                        {
+                            r.ReleaseRefCount(_heap);
+                        }
+                    }
+
                     _memory.Release(last.Memory);
+
+                    
                 }
             }
+
+            _heap.ReleaseZeroRef();
 
             if (_runtimeError is not null)
             {

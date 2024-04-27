@@ -46,6 +46,14 @@ public static class ErrorProvider
             => $"[E020] A method with same parameters, named '{name}' is already defined.";
         public static string InvalidAccessIdentifier(AccessIdentifier identifier)
             => $"[E021] Access identifier '{identifier.ToString().ToLower()}' cannot be used here.";
+        public static string InvalidAttribute(string attrib, string target)
+            => $"[E022] The attribute '{attrib}' cannot be applied for '{target}'.";
+        public static string AttributeMismatch(string a, string b)
+            => $"[E023] The attributes '{a}' and '{b}' cannot be used together for the same target.";
+        public static string InvalidIndexerMethod()
+            => $"[E024] Invalid format for an indexer method.";
+        public static string AttributeNotFound(string attribute)
+            => $"[E025] Attribute '{attribute}' not found.";
     }
 
     public static string InvalidType(TypePath type)
@@ -90,10 +98,10 @@ public static class ErrorProvider
         => $"[C020] Do not return a value.";
     public static string NotAllPathReturns()
         => $"[C021] There is one or more code path(s) which return(s) no value.";
+    public static string InvalidIndexerOverload()
+        => $"[C022] No matching indexer overload.";
     public static string ArrayLengthNotInt()
-        => $"[C022] Length of an array needs to be an integer.";
-    public static string IndexTargetNotArray()
-        => $"[C023] Indexer can only be applied on arrays.";
+        => $"[C023] The length of an array needs to be int.";
     public static string InvalidFunctionOverload()
         => $"[C024] Matching function overload not found.";
     public static string NotInstantiatableType(TypePath failedType)
@@ -110,8 +118,8 @@ public static class ErrorProvider
         => $"[C030] '{symbolName}' is not accessible here.";
     public static string ConstructorNotAccessible()
         => $"[C031] Constructor not accessible here.";
-    public static string NotArrayIndexed()
-        => $"[C032] Cannot apply indexer on non-array symbol.";
+    public static string InvalidIndexTarget()
+        => $"[C032] Cannot apply indexer.";
     public static string ArrayTypeMismatch(TypePath supposedType)
         => $"[C033] Only '{supposedType}' can be assigned to the specified array.";
     public static string InvalidPrimitiveCast(TypePath fromType, TypePath toType)

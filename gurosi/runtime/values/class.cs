@@ -70,6 +70,17 @@ public sealed class ClassValueObject : HeapValueObject
         }
     }
 
+    public void Release(RuntimeHeap heap)
+    {
+        for (int i = 0; i < _fields.Count; i++)
+        {
+            if (_fields[i] is RefValueObject r)
+            {
+                r.ReleaseRefCount(heap);
+            }
+        }
+    }
+
     public override string Str()
     {
         return $"{{Class {_type}}}";

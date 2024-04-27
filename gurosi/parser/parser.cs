@@ -736,6 +736,8 @@ public sealed class Parser {
         List<MethodModel> stcMethods = new List<MethodModel>();
         List<ImplModel> absImpls = new List<ImplModel>();
 
+        List<Token> attributeBuffer = new List<Token>();
+
         while (!_reader.EOF)
         {
             Token token = _reader.Read();
@@ -743,12 +745,39 @@ public sealed class Parser {
             if (token.Type == TokenType.CloseBrace)
                 break;
 
+            if (token.Type == TokenType.AtSign)
+            {
+                // @
+                if (EnsureNext(TokenType.Ident))
+                {
+                    return null;
+                }
+
+                Token attribToken = _reader.Read();
+                
+                if (!ParserUtil.IsValidAttribute(attribToken.Value))
+                {
+                    AddError(ErrorProvider.Parser.AttributeNotFound(attribToken.Value), attribToken);
+                }
+                else
+                {
+                    attributeBuffer.Add(attribToken);
+                }
+            }
+
             if (token.Type == TokenType.Field)
             {
                 _reader.Retr();
                 FieldModel field = ParseField();
+
+                if (ParserValidator.ValidateFieldAttributes(attributeBuffer, out Error e))
+                {
+                    AddError(e);
+                }
+                
                 if (field is not null)
                 {
+                    field.Attributes = ParserUtil.ConvertAttributes(attributeBuffer);
                     GuardFieldDuplicate(fields, field, token);
                     if (field.Identifiers.Contains(AccessIdentifier.Static))
                     {
@@ -758,25 +787,46 @@ public sealed class Parser {
                     {
                         fields.Add(field);
                     }
-                }    
+                }
+
+                attributeBuffer.Clear();
             }
             else if (token.Type == TokenType.How)
             {
                 _reader.Retr();
                 MethodModel method = ParseMethod();
+
                 if (method is not null)
                 {
                     GuardMethodDuplicate(methods, method, token);
                     method.Name += "~" + findexer.GetIndex(method.Name);
                     if (method.AccessIdentifiers.Contains(AccessIdentifier.Static))
                     {
+                        if (ParserValidator.ValidateStaticMethodAttributes(attributeBuffer, out Error e))
+                        {
+                            AddError(e);
+                        }
+
+                        method.Attributes = ParserUtil.ConvertAttributes(attributeBuffer);
                         stcMethods.Add(method);
                     }
                     else
                     {
+                        if (ParserValidator.ValidateMethodAttributes(attributeBuffer, out Error e))
+                        {
+                            AddError(e);
+                        }
+                        else
+                        {
+                            ProcessMethodAttributes(attributeBuffer, method, findexer);
+                        }
+
+                        method.Attributes = ParserUtil.ConvertAttributes(attributeBuffer);
                         methods.Add(method);
                     }
                 }
+
+                attributeBuffer.Clear();
             }
             else if (token.Type == TokenType.Impl)
             {
@@ -788,6 +838,8 @@ public sealed class Parser {
                     impl.Name += "~" + findexer.GetIndex(impl.Name);
                     absImpls.Add(impl);
                 }
+
+                attributeBuffer.Clear();
             }
             else if (token.Type == TokenType.Init)
             {
@@ -795,9 +847,10 @@ public sealed class Parser {
 
                 _reader.Retr();
                 MethodModel constructor = ParseConstructor();
-                constructor.Name += "~" + findexer.GetIndex(constructor.Name);
+                
                 if (constructor is not null)
                 {
+                    constructor.Name += "~" + findexer.GetIndex(constructor.Name);
                     GuardMethodDuplicate(methods, constructor, token);
                     if (!constructor.AccessIdentifiers.Contains(AccessIdentifier.Static))
                     {
@@ -809,6 +862,8 @@ public sealed class Parser {
                         AddError(ErrorProvider.Parser.ConstructorStatic(), token);
                     }
                 }
+
+                attributeBuffer.Clear();
             }
         }
 
@@ -904,6 +959,38 @@ public sealed class Parser {
         }
     }
 
+    private void ProcessMethodAttributes(List<Token> attributes, MethodModel model, FunctionIndexer findexer)
+    {
+        for (int i = 0; i < attributes.Count; i++)
+        {
+            string a = attributes[i].Value;
+
+            if (a == "indexer_get")
+            {
+                model.Name = "__get_idx";
+                model.Name += "~" + findexer.GetIndex(model.Name);
+
+                // validate
+                if (ParserValidator.ValidateIndexerGet(model, out Error e))
+                {
+                    AddError(e);
+                    return;
+                }
+            }
+            if (a == "indexer_set")
+            {
+                model.Name = "__set_idx";
+                model.Name += "~" + findexer.GetIndex(model.Name);
+
+                if (ParserValidator.ValidateIndexerSet(model, out Error e))
+                {
+                    AddError(e);
+                    return;
+                }
+            }
+        }
+    }
+
     private StatementBlock ParseStatementBlock(bool allowOneLiner = false, bool inloop = false, bool root = false)
     {
         Token startToken = _reader.GetCurrent();
@@ -964,6 +1051,11 @@ public sealed class Parser {
         }
 
         return false;
+    }
+
+    private void AddError(Error error)
+    {
+        _errors.Add(error);
     }
 
     private void AddError(string msg)
@@ -1651,7 +1743,7 @@ public sealed class Parser {
     {
         Expression term3 = ParseTerm3();
 
-        if (!_reader.EOF && _reader.MatchNext(TokenType.OpenBracket))
+        while (!_reader.EOF && _reader.MatchNext(TokenType.OpenBracket))
         {
             _reader.Read();  // '['
 

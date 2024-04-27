@@ -168,6 +168,7 @@ public sealed class Compiler
             CompileResult m = CompileMethodCode(x.Body, runtime, fb, ClassBinary.CreatePrototype(model, runtime));
             errors.AddRange(m.Errors);
             fb.Body = new CodeBinary(m.Code);
+            fb.Attributes = x.Attributes;
             
             return fb;
         }).ToList();
@@ -201,6 +202,7 @@ public sealed class Compiler
             CompileResult m = CompileMethodCode(x.Body, runtime, fb, cb, isStatic: true);
             errors.AddRange(m.Errors);
             fb.Body = new CodeBinary(m.Code);
+            fb.Attributes = x.Attributes;
 
             return fb;
         }).ToList();
@@ -405,6 +407,7 @@ public sealed class Compiler
                 env.Errors.Add(new Error(ErrorProvider.LocalNameFieldConflict(ls.VarName), ls.Token.Point));
             }
 
+            type = c.Runtime.Interpolate(type);
             c.DeclareLocal(ls.VarName, type, addr);
         }
         else if (statement is ConstStatement cs)
@@ -878,21 +881,51 @@ public sealed class Compiler
         }
         else if (target is IndexExpression idx)
         {
-            TypePath arrayType = TypeEvaluator.Evaluate(idx.Target, c.Runtime, c);
+            TypePath sourceType = TypeEvaluator.Evaluate(idx.Target, c.Runtime, c);
 
-            if (!arrayType.IsArray)
+            if (!sourceType.IsArray)
             {
-                env.Errors.Add(new Error(ErrorProvider.NotArrayIndexed(), errorToken.Point));
+                // try indexer
+
+                if (c.Runtime.IsClass(sourceType))
+                {
+                    ClassBinary cls = c.Runtime.GetClass(sourceType);
+
+                    if (cls.HasFunction("__set_idx"))
+                    {
+                        // set via indexer
+                        FunctionBinary setter = cls.MatchFunction("__set_idx", new FuncExpression(null, [idx.Index, new DummyExpression(valueType)]), c, sourceType);
+                        if (setter is null)
+                        {
+                            env.Errors.Add(new Error(ErrorProvider.InvalidIndexerOverload(), idx.Token.Point));
+                        }
+                        else
+                        {
+                            CompileExpression(env, c, idx.Index);
+                            
+                            valueCompiler();
+
+                            CompileExpression(env, c, idx.Target);
+                            env.Code.Add("sel");
+                            env.Code.Add(setter.Name);
+                            env.Code.Add("call");
+                        }
+                    }
+                    else
+                    {
+                        env.Errors.Add(new Error(ErrorProvider.InvalidIndexTarget(), idx.Token.Point));
+                    }
+                }
             }
             else
             {
-                TypePath type = arrayType.GetArrayType();
+                TypePath type = sourceType.GetArrayType();
                 
                 bool validType = valueType.IsCompatibleWith(type, c.Runtime, false);
 
                 if (!validType && !TypeEvaluator.ImplicitCastMap.Contains((valueType, type)))
                 {
-                    env.Errors.Add(new Error(ErrorProvider.ArrayTypeMismatch(arrayType.GetArrayType()), errorToken.Point));
+                    env.Errors.Add(new Error(ErrorProvider.ArrayTypeMismatch(sourceType.GetArrayType()), errorToken.Point));
                     return;
                 }
 
@@ -1085,12 +1118,12 @@ public sealed class Compiler
                 env.Code.Add(dot.Right);
             }
         }
-        else if (symbolExpr is IndexExpression idx)
-        {
-            CompileFuncSymbol(env, c, idx.Target, funcExpr);
-            CompileExpression(env, c, idx.Index);
-            env.Code.Add("idx");
-        }
+        //else if (symbolExpr is IndexExpression idx)
+        //{
+        //    CompileFuncSymbol(env, c, idx.Target, funcExpr);
+        //    CompileExpression(env, c, idx.Index);
+        //    env.Code.Add("idx");
+        //}
         else
         {
             CompileExpression(env, c, symbolExpr);
@@ -1216,30 +1249,37 @@ public sealed class Compiler
                 env.Errors.Add(new Error(ErrorProvider.NotAccessible(function.Name), func.Function.Token.Point));
             }
 
-            if (function.IsExtendR)
+            if (function.Attributes.Has(AttributeModel.Inline))
             {
-                // 最初にセルフ引数を積む。
-                CompileExpression(env, c, source);
-            }
 
-            
-            CompileFuncArguments(env, c, function, func.Arguments, func.Function.Token, type: type, cb: cb);
-            
-
-            if (!function.IsExtendR)
-            {
-                CompileFuncSymbol(env, c, func.Function, func);
-                // FIXME: 
-                env.Code[^1] += function.Name.Replace(env.Code[^1], string.Empty);
             }
             else
             {
-                env.Code.Add("mov");
-                env.Code.Add(function.Module);
-                env.Code.Add("sel");
-                env.Code.Add(function.Name);
+                if (function.IsExtendR)
+                {
+                    // 最初にセルフ引数を積む。
+                    CompileExpression(env, c, source);
+                }
+
+
+                CompileFuncArguments(env, c, function, func.Arguments, func.Function.Token, type: type, cb: cb);
+
+
+                if (!function.IsExtendR)
+                {
+                    CompileFuncSymbol(env, c, func.Function, func);
+                    // FIXME: 
+                    env.Code[^1] += function.Name.Replace(env.Code[^1], string.Empty);
+                }
+                else
+                {
+                    env.Code.Add("mov");
+                    env.Code.Add(function.Module);
+                    env.Code.Add("sel");
+                    env.Code.Add(function.Name);
+                }
+                env.Code.Add("call");
             }
-            env.Code.Add("call");
         }
         else if (expression is DotExpression dot)
         {
@@ -1330,12 +1370,41 @@ public sealed class Compiler
             TypePath targetType = TypeEvaluator.Evaluate(idx.Target, c.Runtime, c);
             if (!targetType.IsArray)
             {
-                env.Errors.Add(new Error(ErrorProvider.IndexTargetNotArray(), idx.Target.Token.Point));
+                if (c.Runtime.IsClass(targetType))
+                {
+                    ClassBinary cls = c.Runtime.GetClass(targetType);
+                    if (cls.HasFunction("__get_idx"))
+                    {
+                        FunctionBinary getter = cls.MatchFunction("__get_idx", new FuncExpression(null, [idx.Index]), c, targetType);
+                        if (getter is null)
+                        {
+                            env.Errors.Add(new Error(ErrorProvider.InvalidIndexerOverload(), idx.Target.Token.Point));
+                        }
+                        else
+                        {
+                            CompileExpression(env, c, idx.Index);
+                            CompileExpression(env, c, idx.Target);
+                            env.Code.Add("sel");
+                            env.Code.Add(getter.Name);
+                            env.Code.Add("call");
+                        }
+                    }
+                    else
+                    {
+                        env.Errors.Add(new Error(ErrorProvider.InvalidIndexTarget(), idx.Target.Token.Point));
+                    }
+                }
+                else
+                {
+                    env.Errors.Add(new Error(ErrorProvider.InvalidIndexTarget(), idx.Target.Token.Point));
+                }
             }
-
-            CompileExpression(env, c, idx.Target);
-            CompileExpression(env, c, idx.Index);
-            env.Code.Add("idx");
+            else
+            {
+                CompileExpression(env, c, idx.Target);
+                CompileExpression(env, c, idx.Index);
+                env.Code.Add("idx");
+            }
         }
         else if (expression is CastExpression cast)
         {

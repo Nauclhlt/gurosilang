@@ -245,8 +245,18 @@ public sealed class LocalContext
                 {
                     // メインスタックから値をとりだし、メモリ上に入れる。
                     int addr = _code.ReadAddress();
+
+                    if (_memory.Read(addr) is RefValueObject b)
+                    {
+                        b.ReleaseRefCount(_runtime.Heap);
+                    }
+
                     IValueObject source = _mainStack.Pop();
                     _memory.Write(addr, source.Clone());
+                    if (source is RefValueObject r)
+                    {
+                        r.AddRefCount(_runtime.Heap);
+                    }
 
                     DebugWrite($"[DBG] Stack Pop  addr={addr}");
                     break;
@@ -297,7 +307,17 @@ public sealed class LocalContext
 
                     ClassValueObject target = targetRef.Refer<ClassValueObject>(_runtime.Heap);
 
+                    if (target.FieldValueOf(index) is RefValueObject b)
+                    {
+                        b.ReleaseRefCount(_runtime.Heap);
+                    }
+
                     target.SetFieldValue(index, value.Clone());
+
+                    if (value is RefValueObject r)
+                    {
+                        r.AddRefCount(_runtime.Heap);
+                    }
 
                     DebugWrite($"[DBG] Field set idx={index}");
                     break;
@@ -323,7 +343,17 @@ public sealed class LocalContext
                     }
                     else
                     {
+                        if (array.Body[index] is RefValueObject b)
+                        {
+                            b.ReleaseRefCount(_runtime.Heap);
+                        }
+
                         array.Body[index] = valueSource.Clone();
+
+                        if (valueSource is RefValueObject r)
+                        {
+                            r.AddRefCount(_runtime.Heap);
+                        }
 
                         DebugWrite($"[DBG] Array assign  index={index}");
                     }
@@ -666,6 +696,14 @@ public sealed class LocalContext
                     TypePath type = TypePath.FromString(_code.ReadString());
                     type = WithGenerics(type);
 
+                    if (_memory.IsAllocated(addr))
+                    {
+                        if (_memory.Read(addr) is RefValueObject r)
+                        {
+                            r.ReleaseRefCount(_runtime.Heap);
+                        }
+                    }
+
                     _memory.Alloc(addr);
                     _memory.Write(addr, IValueObject.DefaultOf(type));
 
@@ -702,7 +740,9 @@ public sealed class LocalContext
                     int addr = _runtime.Heap.Alloc();
                     _runtime.Heap.Write(addr, value);
 
-                    _mainStack.Push(new RefValueObject(value.Type, addr));
+                    var v = new RefValueObject(value.Type, addr);
+
+                    _mainStack.Push(v);
                     break;
                 }
             case GIL.RET:

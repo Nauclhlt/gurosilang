@@ -7,6 +7,7 @@ public sealed class MethodModel {
     private List<DefArgument> _parameters;
     private StatementBlock _body;
     private Token _token;
+    private AttributeModel _attributes;
 
     public string Name
     {
@@ -18,6 +19,11 @@ public sealed class MethodModel {
     public List<DefArgument> Parameters => _parameters;
     public StatementBlock Body => _body;
     public Token Token => _token;
+    public AttributeModel Attributes
+    {
+        get => _attributes;
+        set => _attributes = value;
+    }
 
     public MethodModel(string name, TypeData returnType, List<DefArgument> parameters, StatementBlock body, List<AccessIdentifier> identifiers, Token token)
     {

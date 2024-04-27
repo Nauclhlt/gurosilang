@@ -14,11 +14,15 @@ public sealed class ArgumentList
         _arguments[index] = value;
     }
 
-    public void ExtractOnMemory(SlicedMemory memory)
+    public void ExtractOnMemory(SlicedMemory memory, RuntimeHeap heap)
     {
         for (int i = 0; i < _arguments.Length; i++)
         {
             memory.Alloc(i);
+            if (_arguments[i] is RefValueObject r)
+            {
+                r.AddRefCount(heap);
+            }
             memory.Write(i, _arguments[i].Clone());
         }
     }

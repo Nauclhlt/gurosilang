@@ -10,45 +10,27 @@ memsize 1920;
 
 run
 {
-    let dict: Dict<string, int> = new Dict<string, int>(new StringHasher());
+    let c: MyClass = new MyClass();
+    c.getMsg();
+}
 
-    dict.add("One", 1);
-    dict.add("Two", 2);
-    dict.add("Three", 3);
-    dict.add("Four", 4);
-    dict.add("Five", 5);
-    dict.add("Six", 6);
-    dict.add("Seven", 7);
-    dict.add("Eight", 8);
-    dict.add("Nine", 9);
-    dict.add("Ten", 10);
 
-    debug(dict.get("One"));
-    debug(dict.get("Two"));
-    debug(dict.get("Three"));
-    debug(dict.get("Four"));
-    debug(dict.get("Five"));
-    debug(dict.get("Six"));
-    debug(dict.get("Seven"));
-    debug(dict.get("Eight"));
-    debug(dict.get("Nine"));
-    debug(dict.get("Ten"));
-
-    dict.remove("Four");
-
-    debug(dict.get("One"));
-    debug(dict.get("Two"));
-    debug(dict.get("Three"));
-    # debug(dict.get("Four"));
-    debug(dict.get("Five"));
-    debug(dict.get("Six"));
-    debug(dict.get("Seven"));
-    debug(dict.get("Eight"));
-    debug(dict.get("Nine"));
-    debug(dict.get("Ten"));
+how void func(value: List<string>)
+{
 }
 
 how void debug(value: any)
 {
     Log.println(str(value));
+}
+
+class MyClass: public
+{
+    
+    field private _msg: string;
+
+    how string getMsg(): public
+    {
+        return "Hello world";
+    }
 }

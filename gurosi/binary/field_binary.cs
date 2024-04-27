@@ -5,10 +5,12 @@ public sealed class FieldBinary : IBinary
     private string _name;
     private TypePath _type;
     private List<AccessIdentifier> _identifiers;
+    private AttributeModel _attributes;
 
     public string Name => _name;
     public TypePath Type => _type;
     public List<AccessIdentifier> Identifiers => _identifiers;
+    public AttributeModel Attributes => _attributes;
 
     public FieldBinary()
     {
@@ -26,6 +28,7 @@ public sealed class FieldBinary : IBinary
         {
             _identifiers.Add((AccessIdentifier)reader.ReadInt32());
         }
+        _attributes = (AttributeModel)reader.ReadInt32();
     }
 
     public void Write(BinaryWriter writer)
@@ -37,6 +40,7 @@ public sealed class FieldBinary : IBinary
         {
             writer.Write((int)_identifiers[i]);
         }
+        writer.Write((int)_attributes);
     }
 
     public static FieldBinary FromModel(FieldModel model, RuntimeEnv runtime)
@@ -45,6 +49,7 @@ public sealed class FieldBinary : IBinary
         fb._name = model.Name;
         fb._identifiers = model.Identifiers.ToList();
         fb._type = runtime.Interpolate(TypePath.FromModel(model.Type));
+        fb._attributes = model.Attributes;
 
         return fb;
     }

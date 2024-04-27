@@ -32,7 +32,7 @@ else
     }
     else
     {
-        //exe._PrintDebug();
+        exe._PrintDebug();
 
         ProgramRuntime runtime = new ProgramRuntime(exe);
 

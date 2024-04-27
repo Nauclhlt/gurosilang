@@ -242,6 +242,10 @@ public sealed partial class RuntimeEnv
                     
             }
 
+            for (int i = 0; i < lastValid.Generics.Count; i++)
+            {
+                lastValid.Generics[i] = this.Interpolate(lastValid.Generics[i]);
+            }
             return lastValid;
         }
         else
